@@ -12,6 +12,7 @@ var main = new function() {
     self.$connectMenu = $('#connectMenu');
     self.$addNewWidget = $('#addNewWidget');
     self.$run = $('#run');
+    self.$stop = $('#stop');
     self.$widgetToolbox = $('#widgetToolbox');
     self.$trash = $('#trash');
 
@@ -23,7 +24,25 @@ var main = new function() {
     self.$languageMenu.click(self.toggleLanguageMenu);
     self.$connectMenu.click(self.toggleConnectMenu);
     self.$trash.click(self.trashInfo);
+    self.$run.click(self.run);
+    self.$stop.click(self.stop);
   };
+
+  this.run = function() {
+    self.mode = 'run';
+    self.$addNewWidget.addClass('hide');
+    self.$run.addClass('hide');
+    self.$trash.addClass('hide');
+    self.$stop.removeClass('hide');
+  };
+
+  this.stop = function() {
+    self.mode = 'run';
+    self.$addNewWidget.removeClass('hide');
+    self.$run.removeClass('hide');
+    self.$trash.removeClass('hide');
+    self.$stop.addClass('hide');
+  }
 
   this.trashInfo = function() {
     toastMsg('Drag widgets here to delete');
