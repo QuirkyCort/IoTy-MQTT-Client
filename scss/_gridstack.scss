@@ -1,0 +1,32 @@
+.grid-stack {
+  background: #FAFAD2;
+}
+
+.grid-stack-item-content {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: solid 1px #ccc;
+  border-radius: 0.5em;
+}
+
+.grid-stack-item[ioty-type="button"] {
+  .button {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(100% - 2em);
+    width: calc(100% - 2em);
+    background: #007bff;
+    color: white;
+    border-radius: 1em;
+    font-weight: bold;
+  }
+
+  .button:active {
+    border: solid 2px #66b0ff;
+  }
+}

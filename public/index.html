@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="css/main.css?v=51ac120d">
+  <link rel="stylesheet" href="css/widgets.css?v=4bbaadb1">
+
+  <script src="jquery/jquery-3.6.1.slim.min.js"></script>
+
+  <link href="gridstack/7.1.2/gridstack.min.css" rel="stylesheet"/>
+  <link href="gridstack/7.1.2/gridstack-extra.min.css" rel="stylesheet"/>
+  <script src="gridstack/7.1.2/gridstack-all.js"></script>
+
+  <script src="js/msg.js?v=9a1475c4"></script>
+  <script src="js/common/widgets.js?v=8de59276"></script>
+
+  <title>IoTy MQTT Client</title>
+</head>
+
+<body>
+  <header>
+    <!-- <img class="gearsIcon" src="favicon-32.png"> -->
+    <div class="headerLeft">
+      <div id="addNewWidget"><span class="icon-plus"></span></div>
+      <div id="run"><span class="icon-play"></span></div>
+    </div>
+
+    <div class="headerCenter">
+      <div id="trash" class="text-center">
+        <span class="icon-deleteFile"></span>
+      </div>
+    </div>
+
+    <div class="headerRight">
+      <div id="connectGroup">
+        <div id="connectionStatus">Disconnected</div>
+        <div id="connectMenu">
+          <span class="icon-kebab"></span>
+        </div>
+      </div>
+
+      <div class="language"><span class="icon-globe"></span> &#x25BE;</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="gridContainer">
+      <div class="grid-stack"></div>
+    </div>
+
+    <div id="widgetToolbox" class="hide">
+      <!-- <div class="newWidget grid-stack-item">
+        <div class="grid-stack-item-content">
+          <div>
+            <span class="icon-plus"></span>
+          </div>
+          <div>
+            <span>Drag me in the dashboard!</span>
+          </div>
+        </div>
+      </div> -->
+    </div>
+  </main>
+
+  <script src="js/iotyWidgets.js?v=78f5bbd4"></script>
+  <script src="js/main.js?v=78f5bbd4"></script>
+</body>
+</html>
