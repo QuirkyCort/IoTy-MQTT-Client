@@ -9,6 +9,13 @@
   justify-content: center;
   border: solid 1px #ccc;
   border-radius: 0.5em;
+  transition: 0.5s border-color;
+}
+
+.gridContainer.run {
+  .grid-stack-item-content {
+    border-color: transparent;
+  }
 }
 
 .grid-stack-item[ioty-type="button"] {

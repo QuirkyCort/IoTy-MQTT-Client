@@ -15,6 +15,7 @@ var main = new function() {
     self.$stop = $('#stop');
     self.$widgetToolbox = $('#widgetToolbox');
     self.$trash = $('#trash');
+    self.$gridContainer = $('.gridContainer');
 
     self.updateTextLanguage();
     self.initWidgetToolbox();
@@ -34,14 +35,18 @@ var main = new function() {
     self.$run.addClass('hide');
     self.$trash.addClass('hide');
     self.$stop.removeClass('hide');
+    self.$gridContainer.addClass('run');
+    self.grid.disable();
   };
 
   this.stop = function() {
-    self.mode = 'run';
+    self.mode = 'edit';
     self.$addNewWidget.removeClass('hide');
     self.$run.removeClass('hide');
     self.$trash.removeClass('hide');
     self.$stop.addClass('hide');
+    self.$gridContainer.removeClass('run');
+    self.grid.enable();
   }
 
   this.trashInfo = function() {

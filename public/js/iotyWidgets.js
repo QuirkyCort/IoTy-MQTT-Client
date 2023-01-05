@@ -55,36 +55,11 @@ class IotyWidget {
 
   settingsDialog() {
     if (main.mode == 'edit' && main.allowSettingsDialog) {
-      function getTitle(setting) {
-        let $title = $('<div class="configurationTitle"></div>');
-        let $toolTip = $('<span> </span><div class="tooltip right">?<div class="tooltiptext"></div></div>');
-        $title.text(setting.title);
-
-        if (setting.help) {
-          $toolTip.find('.tooltiptext').text(setting.help);
-          $title.append($toolTip);
-        }
-
-        return $title;
-      }
-
-      function genText(setting) {
-        let $div = $('<div class="configuration"></div>');
-        let $textBox = $('<div class="text"><input type="text"></div>');
-        let $input = $textBox.find('input');
-        $input.val(setting.value);
-
-        $div.append(getTitle(setting));
-        $div.append($textBox);
-
-        return $div;
-      }
-
       let $body = $('<div class="settings"></div>');
 
       for (let setting of this.settings) {
         if (setting.type == 'text') {
-          $body.append(genText(setting));
+          $body.append(genDialog.text(setting));
         }
       }
 
@@ -109,6 +84,7 @@ class IotyButton extends IotyWidget {
     this.content = '<div class="button"><div class="text">BTN</div></div>'
     this.options.type = 'button';
     this.widgetName = '#widget-button#';
+    this.state = 0;
 
     this.settings.push({
       name: 'press',
@@ -129,6 +105,23 @@ class IotyButton extends IotyWidget {
   attach(ele) {
     super.attach(ele);
     let button = ele.querySelector('.button');
+    button.addEventListener('pointerdown', this.buttonDown.bind(this));
+    button.addEventListener('pointerup', this.buttonUp.bind(this));
+    button.addEventListener('pointerleave', this.buttonUp.bind(this));
+  }
+
+  buttonDown() {
+    if (main.mode == 'run') {
+      console.log('down');
+      this.state = 1;
+    }
+  }
+
+  buttonUp() {
+    if (main.mode == 'run' && this.state) {
+      console.log('up');
+      this.state = 0;
+    }
   }
 }
 
