@@ -3,6 +3,7 @@ var main = new function() {
 
   this.mode = 'edit';
   this.gridstackLayout = 'move';
+  this.allowSettingsDialog = true;
 
   // Run on page load
   this.init = function() {
@@ -85,6 +86,17 @@ var main = new function() {
     });
     // self.grid.load(items);
     self.grid.on('added', self.gridStackAdded);
+
+    // Prevent resize from triggering settings dialog
+    self.grid.on('resizestart', function(e, ele) {
+      self.allowSettingsDialog = false;
+    });
+    self.grid.on('resizestop', function(e, ele) {
+      window.setTimeout(function() {
+        self.allowSettingsDialog = true;
+      }, 0);
+    });
+
 
     self.resizeGrid();
     window.addEventListener('resize', self.resizeGrid);

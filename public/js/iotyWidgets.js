@@ -50,11 +50,11 @@ class IotyWidget {
 
   attach(ele) {
     let self = this;
-    ele.addEventListener('pointerdown', this.settingsDialog.bind(this));
+    ele.addEventListener('click', this.settingsDialog.bind(this));
   }
 
   settingsDialog() {
-    if (main.mode == 'edit') {
+    if (main.mode == 'edit' && main.allowSettingsDialog) {
       function getTitle(setting) {
         let $title = $('<div class="configurationTitle"></div>');
         let $toolTip = $('<span> </span><div class="tooltip right">?<div class="tooltiptext"></div></div>');
