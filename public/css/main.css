@@ -275,7 +275,8 @@ ul.menuDropDownRightAlign {
   background: #007bff;
   color: white;
   border-radius: 1em;
-  font-weight: bold; }
+  font-weight: bold;
+  text-align: center; }
 .grid-stack-item[ioty-type="button"] .button:active {
   border: solid 2px #66b0ff; }
 

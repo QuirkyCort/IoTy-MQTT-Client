@@ -7,11 +7,15 @@ var main = new function() {
   this.MODE_EDIT = 'edit';
   this.MODE_RUN = 'run';
 
+  this.PROJECT_SAVE_TOPIC = '_IoTy_Project';
+
   this.mode = this.MODE_EDIT;
   this.gridstackLayout = 'move';
   this.allowSettingsDialog = true;
 
   this.subscriptions = [];
+  this.jsonSave = '';
+  this.connected = false;
 
   this.connectSettings = [
     {
@@ -60,6 +64,7 @@ var main = new function() {
   };
 
   this.run = function() {
+    if (self.client)
     self.mode = self.MODE_RUN;
     self.$addNewWidget.addClass('hide');
     self.$run.addClass('hide');
@@ -67,7 +72,7 @@ var main = new function() {
     self.$stop.removeClass('hide');
     self.$gridContainer.addClass('run');
     self.grid.disable();
-    self.updateSubscriptions();
+    self.subscribeAll();
   };
 
   this.stop = function() {
@@ -78,6 +83,7 @@ var main = new function() {
     self.$stop.addClass('hide');
     self.$gridContainer.removeClass('run');
     self.grid.enable();
+    self.unsubscribeAll();
   }
 
   this.trashInfo = function() {
@@ -129,10 +135,6 @@ var main = new function() {
   };
 
   this.initGridStack = function() {
-    // var items = [
-    //   {content: 'my first widget'}, // will default to location (0,0) and 1x1
-    //   {w: 2, content: 'another longer widget!'} // will be placed next at (1,0) and 2x1
-    // ];
     self.grid = GridStack.init({
       float: true,
       cellHeight: 'initial',
@@ -142,8 +144,9 @@ var main = new function() {
       dragInOptions: { appendTo: 'body', helper: 'clone' }, // clone or can be your function
       removable: '#trash', // drag-out delete class
     });
-    // self.grid.load(items);
     self.grid.on('added', self.gridStackAdded);
+    self.grid.on('change', self.gridStackChange);
+    self.grid.on('removed', function() { window.setTimeout(self.gridStackChange, 0)});
 
     // Prevent resize from triggering settings dialog
     self.grid.on('resizestart', function(e, ele) {
@@ -165,6 +168,10 @@ var main = new function() {
       item.el.classList.remove('newWidget');
       attachIotyWidget(item.el);
     }
+  };
+
+  this.gridStackChange = function(e, items) {
+    self.saveAndPublishJSON();
   };
 
   // Update text already in html
@@ -277,7 +284,9 @@ var main = new function() {
   };
 
   this.disconnect = function() {
+    self.connected = false;
     self.client.disconnect();
+    self.stop();
   };
 
   this.connectTimeout = function() {
@@ -286,9 +295,12 @@ var main = new function() {
   };
 
   this.onConnect = function() {
+    self.connected = true;
     window.clearInterval(self.connectTimeoutID);
     self.$connectWindow.close();
     self.setConnectStatus(self.STATUS_CONNECTED);
+    let username = self.getSetting(self.connectSettings, 'username');
+    self.client.subscribe(username + '/' + self.PROJECT_SAVE_TOPIC);
   };
 
   this.onConnectionLost = function(responseObject) {
@@ -301,6 +313,12 @@ var main = new function() {
   };
 
   this.onMessageArrived = function(message) {
+    let username = self.getSetting(self.connectSettings, 'username');
+    if (message.destinationName == username + '/' + self.PROJECT_SAVE_TOPIC) {
+      self.loadProject(message.payloadString);
+      return;
+    }
+
     let elements = self.grid.getGridItems();
     for (let element of elements) {
       if (element.widget.subscriptions.includes(message.destinationName)) {
@@ -310,9 +328,11 @@ var main = new function() {
   };
 
   this.publish = function(topic, payload) {
-    let message = new Paho.MQTT.Message(payload);
-    message.destinationName = topic;
-    self.client.send(message);
+    if (topic.trim() != '' && self.connected) {
+      let message = new Paho.MQTT.Message(payload);
+      message.destinationName = topic;
+      self.client.send(message);
+    }
   };
 
   this.hiddenButtonDialog = function(title, body) {
@@ -343,7 +363,35 @@ var main = new function() {
     }
   };
 
+  this.subscribeAll = function() {
+    if (! self.connected) {
+      return;
+    }
+
+    let elements = self.grid.getGridItems();
+    let newSubscription = [];
+
+    // Create a new subscription list without duplicates
+    for (let element of elements) {
+      for (let subscription of element.widget.subscriptions) {
+        if (subscription.trim() != '') {
+          newSubscription.push(subscription);
+        }
+      }
+    }
+
+    for (let subscription of newSubscription) {
+      self.client.subscribe(subscription);
+    }
+
+    this.subscriptions = newSubscription;
+  };
+
   this.updateSubscriptions = function() {
+    if (! self.connected) {
+      return;
+    }
+
     let elements = self.grid.getGridItems();
     let newSubscription = [];
 
@@ -371,11 +419,6 @@ var main = new function() {
       }
     }
 
-    console.log('subscribe');
-    console.log(subscribe);
-    console.log('unsubscribe');
-    console.log(unsubscribe);
-
     for (let subscription of unsubscribe) {
       self.client.unsubscribe(subscription);
     }
@@ -387,6 +430,10 @@ var main = new function() {
   };
 
   this.unsubscribeAll = function() {
+    if (! self.connected) {
+      return;
+    }
+
     for (let subscription of this.subscriptions) {
       self.client.unsubscribe(subscription);
     }
@@ -401,6 +448,25 @@ var main = new function() {
     }
     return 'IoTy-' + rand;
   };
+
+  this.saveAndPublishJSON = function() {
+    self.saveJSON();
+
+    if (self.connected) {
+      let username = self.getSetting(self.connectSettings, 'username');
+      let topic = username + '/' + self.PROJECT_SAVE_TOPIC;
+
+      let message = new Paho.MQTT.Message(self.jsonSave);
+      message.destinationName = topic;
+      message.retained = true;
+      message.qos = 1;
+      self.client.send(message);
+    }
+  };
+
+  this.saveJSON = function() {
+    self.jsonSave = self.getJSON();
+  }
 
   this.getJSON = function() {
     let elements = self.grid.getGridItems();
@@ -450,6 +516,17 @@ var main = new function() {
         ele.widget.setSetting(name, widget.settings[name]);
       }
       ele.widget.processSettings();
+    }
+
+    return save;
+  };
+
+  this.loadProject = function(json) {
+    if (self.jsonSave == '') {
+      self.loadJSON(json);
+      self.jsonSave = json;
+    } else if (json != self.jsonSave) {
+      toastMsg('prompt not implemented yet');
     }
   };
 

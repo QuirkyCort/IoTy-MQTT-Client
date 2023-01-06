@@ -96,6 +96,7 @@ class IotyWidget {
           this.processSettings();
         }
         $dialog.close();
+        main.saveAndPublishJSON();
       }).bind(this));
     }
   }
