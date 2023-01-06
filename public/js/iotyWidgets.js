@@ -100,6 +100,9 @@ class IotyWidget {
     }
   }
 
+  processSettings() {
+  }
+
   onMessageArrived(payload) {
   }
 }
@@ -116,14 +119,16 @@ class IotyLabel extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The label widget is only used for displaying text. It does not send or receives any messages.'
+        value: 'The label widget is only used for displaying text. It does not send or receives any messages.',
+        save: false
       },
       {
         name: 'label',
         title: 'Label',
         type: 'text',
         value: 'Label',
-        help: 'Text on the label.'
+        help: 'Text on the label.',
+        save: true
       },
     ];
     this.settings.push(...settings);
@@ -152,35 +157,40 @@ class IotyButton extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The button widget will publish a message to the specified topic when the button is pressed, and another message when released.'
+        value: 'The button widget will publish a message to the specified topic when the button is pressed, and another message when released.',
+        save: false
       },
       {
         name: 'topic',
         title: 'MQTT Topic',
         type: 'text',
         value: '',
-        help: 'Topic to publish to.'
+        help: 'Topic to publish to.',
+        save: true
       },
       {
         name: 'press',
         title: 'Send on Press',
         type: 'text',
         value: '1',
-        help: 'This value will be published when the button is pressed.'
+        help: 'This value will be published when the button is pressed.',
+        save: true
       },
       {
         name: 'release',
         title: 'Send on Release',
         type: 'text',
         value: '0',
-        help: 'This value will be published when the button is released.'
+        help: 'This value will be published when the button is released.',
+        save: true
       },
       {
         name: 'label',
         title: 'Label',
         type: 'text',
         value: 'BTN',
-        help: 'Text on the button.'
+        help: 'Text on the button.',
+        save: true
       },
     ];
     this.settings.push(...settings);
@@ -227,14 +237,16 @@ class IotyDisplay extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The display widget will display whatever messages it receives.'
+        value: 'The display widget will display whatever messages it receives.',
+        save: false
       },
       {
         name: 'topic',
         title: 'MQTT Topic',
         type: 'text',
         value: '',
-        help: 'Topic to subscribe to.'
+        help: 'Topic to subscribe to.',
+        save: true
       },
     ];
     this.settings.push(...settings);
@@ -256,6 +268,10 @@ class IotyDisplay extends IotyWidget {
 
 // Helper function to attach widget to element
 function attachIotyWidget(ele) {
+  if (typeof ele.widget != 'undefined') {
+    return;
+  }
+
   let widget;
   if (ele.getAttribute('ioty-type') == 'button') {
     widget = new IotyButton();

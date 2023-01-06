@@ -402,6 +402,57 @@ var main = new function() {
     return 'IoTy-' + rand;
   };
 
+  this.getJSON = function() {
+    let elements = self.grid.getGridItems();
+    let save = { widgets: [] };
+
+    for (let element of elements) {
+      let widget = {};
+      widget.x = element.getAttribute('gs-x');
+      widget.y = element.getAttribute('gs-y');
+      widget.w = element.getAttribute('gs-w');
+      widget.h = element.getAttribute('gs-h');
+      widget.type = element.getAttribute('ioty-type');
+      widget.settings = {};
+      for (let setting of element.widget.settings) {
+        if (setting.save) {
+          widget.settings[setting.name] = setting.value;
+        }
+      }
+      save.widgets.push(widget);
+    }
+
+    return JSON.stringify(save);
+  };
+
+  this.loadJSON = function(json) {
+    let save = JSON.parse(json);
+
+    for (let widget of save.widgets) {
+      let content;
+
+      if (widget.type == 'button') {
+        content = new IotyButton().draw();
+      } else if (widget.type == 'label') {
+        content = new IotyLabel().draw();
+      } else if (widget.type == 'display') {
+        content = new IotyDisplay().draw();
+      }
+      let ele = self.grid.addWidget(content, {
+        x: widget.x,
+        y: widget.y,
+        w: widget.w,
+        h: widget.h
+      });
+
+      attachIotyWidget(ele);
+      for (let name in widget.settings) {
+        ele.widget.setSetting(name, widget.settings[name]);
+      }
+      ele.widget.processSettings();
+    }
+  };
+
   // Set connect status
   this.setConnectStatus = function(status) {
     if (status == self.STATUS_CONNECTED) {
