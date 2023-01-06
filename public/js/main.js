@@ -11,6 +11,8 @@ var main = new function() {
   this.gridstackLayout = 'move';
   this.allowSettingsDialog = true;
 
+  this.subscriptions = [];
+
   this.connectSettings = [
     {
       name: 'host',
@@ -47,6 +49,7 @@ var main = new function() {
     self.updateTextLanguage();
     self.initWidgetToolbox();
     self.initGridStack();
+    self.loadConnectSettings();
 
     self.$addNewWidget.click(self.toggleWidgetToolbox);
     self.$languageMenu.click(self.toggleLanguageMenu);
@@ -64,6 +67,7 @@ var main = new function() {
     self.$stop.removeClass('hide');
     self.$gridContainer.addClass('run');
     self.grid.disable();
+    self.updateSubscriptions();
   };
 
   this.stop = function() {
@@ -97,9 +101,12 @@ var main = new function() {
     });
 
     // Draw widgets
-    let widget;
-    widget = new IotyButton();
-    self.$widgetToolbox.append(widget.draw());
+    self.$widgetToolbox.append('<div class="toolboxLabel">Label</div>');
+    self.$widgetToolbox.append(new IotyLabel().draw());
+    self.$widgetToolbox.append('<div class="toolboxLabel">Button</div>');
+    self.$widgetToolbox.append(new IotyButton().draw());
+    self.$widgetToolbox.append('<div class="toolboxLabel">Display</div>');
+    self.$widgetToolbox.append(new IotyDisplay().draw());
   };
 
   this.closeWidgetToolbox = function() {
@@ -248,6 +255,7 @@ var main = new function() {
       for (let a of values) {
         self.setSetting(self.connectSettings, a.name, a.ele.value);
       }
+      self.saveConnectSettings();
       self.connect();
       $dialog.close();
     }));
@@ -288,11 +296,17 @@ var main = new function() {
     self.setConnectStatus(self.STATUS_DISCONNECTED);
     if (responseObject.errorCode !== 0) {
       toastMsg('Connection Lost: ' + responseObject.errorMessage);
+      console.log(responseObject.errorMessage);
     }
   };
 
   this.onMessageArrived = function(message) {
-    console.log("onMessageArrived:"+message.payloadString);
+    let elements = self.grid.getGridItems();
+    for (let element of elements) {
+      if (element.widget.subscriptions.includes(message.destinationName)) {
+        element.widget.onMessageArrived(message.payloadString);
+      }
+    }
   };
 
   this.publish = function(topic, payload) {
@@ -311,13 +325,82 @@ var main = new function() {
     return $dialog;
   };
 
+  this.saveConnectSettings = function() {
+    let settings = {};
+
+    for (let setting of this.connectSettings) {
+      settings[setting.name] = setting.value;
+    }
+
+    localStorage.setItem('connectSettings', JSON.stringify(settings));
+  };
+
+  this.loadConnectSettings = function() {
+    let settings = JSON.parse(localStorage.getItem('connectSettings'));
+
+    for (let setting of this.connectSettings) {
+      setting.value = settings[setting.name];
+    }
+  };
+
+  this.updateSubscriptions = function() {
+    let elements = self.grid.getGridItems();
+    let newSubscription = [];
+
+    // Create a new subscription list without duplicates
+    for (let element of elements) {
+      for (let subscription of element.widget.subscriptions) {
+        if (! newSubscription.includes(subscription)) {
+          newSubscription.push(subscription);
+        }
+      }
+    }
+
+    let unsubscribe = [];
+    let subscribe = [];
+
+    for (let subscription of this.subscriptions) {
+      if (! newSubscription.includes(subscription)) {
+        unsubscribe.push(subscription);
+      }
+    }
+
+    for (let subscription of newSubscription) {
+      if (! this.subscriptions.includes(subscription)) {
+        subscribe.push(subscription);
+      }
+    }
+
+    console.log('subscribe');
+    console.log(subscribe);
+    console.log('unsubscribe');
+    console.log(unsubscribe);
+
+    for (let subscription of unsubscribe) {
+      self.client.unsubscribe(subscription);
+    }
+    for (let subscription of subscribe) {
+      self.client.subscribe(subscription);
+    }
+
+    this.subscriptions = newSubscription;
+  };
+
+  this.unsubscribeAll = function() {
+    for (let subscription of this.subscriptions) {
+      self.client.unsubscribe(subscription);
+    }
+
+    this.subscriptions = [];
+  };
+
   this.genClientID = function() {
     let rand = '';
     for (let i=0; i<8; i++) {
       rand += Math.random().toString()[2];
     }
     return 'IoTy-' + rand;
-  }
+  };
 
   // Set connect status
   this.setConnectStatus = function(status) {

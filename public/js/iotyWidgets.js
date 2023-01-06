@@ -7,6 +7,8 @@ class IotyWidget {
         '</div>' +
       '</div>';
     this.content = '';
+    this.element = null;
+    this.subscriptions = [];
 
     this.options = {
       type: '',
@@ -24,14 +26,7 @@ class IotyWidget {
       h: 'gs-h'
     }
 
-    this.settings = [
-      {
-        name: 'topic',
-        title: 'MQTT Topic',
-        type: 'text',
-        value: ''
-      },
-    ];
+    this.settings = [];
   }
 
   draw() {
@@ -49,7 +44,7 @@ class IotyWidget {
   }
 
   attach(ele) {
-    let self = this;
+    this.element = ele;
     ele.addEventListener('click', this.settingsDialog.bind(this));
   }
 
@@ -75,11 +70,14 @@ class IotyWidget {
       let values = [];
 
       for (let setting of this.settings) {
+        let obj;
         if (setting.type == 'text') {
-          let obj = genDialog.text(setting);
-          $body.append(obj.ele);
+          obj = genDialog.text(setting);
           values.push(...obj.values);
+        } else if (setting.type == 'label') {
+          obj = genDialog.label(setting);
         }
+        $body.append(obj.ele);
       }
 
       let $buttons = $(
@@ -94,34 +92,98 @@ class IotyWidget {
         for (let a of values) {
           this.setSetting(a.name, a.ele.value);
         }
+        if (typeof this.processSettings == 'function') {
+          this.processSettings();
+        }
         $dialog.close();
       }).bind(this));
     }
+  }
+
+  onMessageArrived(payload) {
+  }
+}
+
+class IotyLabel extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="label"><div>Label</div></div>'
+    this.options.type = 'label';
+    this.widgetName = '#widget-label#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The label widget is only used for displaying text. It does not send or receives any messages.'
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Label',
+        help: 'Text on the label.'
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
   }
 }
 
 class IotyButton extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="button"><div class="text">BTN</div></div>'
+    this.content = '<div class="button"><div>BTN</div></div>'
     this.options.type = 'button';
     this.widgetName = '#widget-button#';
     this.state = 0;
 
-    this.settings.push({
-      name: 'press',
-      title: 'Send on Press',
-      type: 'text',
-      value: '1',
-      help: 'This value will be published when the button is pressed.'
-    });
-    this.settings.push({
-      name: 'release',
-      title: 'Send on Release',
-      type: 'text',
-      value: '0',
-      help: 'This value will be published when the button is released.'
-    });
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The button widget will publish a message to the specified topic when the button is pressed, and another message when released.'
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.'
+      },
+      {
+        name: 'press',
+        title: 'Send on Press',
+        type: 'text',
+        value: '1',
+        help: 'This value will be published when the button is pressed.'
+      },
+      {
+        name: 'release',
+        title: 'Send on Release',
+        type: 'text',
+        value: '0',
+        help: 'This value will be published when the button is released.'
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'BTN',
+        help: 'Text on the button.'
+      },
+    ];
+    this.settings.push(...settings);
   }
 
   attach(ele) {
@@ -130,6 +192,11 @@ class IotyButton extends IotyWidget {
     button.addEventListener('pointerdown', this.buttonDown.bind(this));
     button.addEventListener('pointerup', this.buttonUp.bind(this));
     button.addEventListener('pointerleave', this.buttonUp.bind(this));
+  }
+
+  processSettings() {
+    let button = this.element.querySelector('.button');
+    button.innerText = this.getSetting('label');
   }
 
   buttonDown() {
@@ -147,10 +214,55 @@ class IotyButton extends IotyWidget {
   }
 }
 
+class IotyDisplay extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="display"><div></div></div>'
+    this.options.type = 'display';
+    this.widgetName = '#widget-display#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The display widget will display whatever messages it receives.'
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.'
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+  }
+
+  onMessageArrived(payload) {
+    let display = this.element.querySelector('.display');
+    display.innerText = payload;
+  }
+}
+
+// Helper function to attach widget to element
 function attachIotyWidget(ele) {
   let widget;
   if (ele.getAttribute('ioty-type') == 'button') {
     widget = new IotyButton();
+  } else if (ele.getAttribute('ioty-type') == 'label') {
+    widget = new IotyLabel()
+  } else if (ele.getAttribute('ioty-type') == 'display') {
+    widget = new IotyDisplay()
   }
 
   widget.attach(ele);

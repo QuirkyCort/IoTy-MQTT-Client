@@ -18,6 +18,25 @@
   }
 }
 
+.grid-stack-item[ioty-type="label"] {
+  .label {
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    font-weight: bold;
+  }
+}
+
+.grid-stack-item[ioty-type="display"] {
+  .display {
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    font-weight: bold;
+    background: lightgray;
+    padding: 0.5em;
+    box-sizing: border-box;
+  }
+}
+
 .grid-stack-item[ioty-type="button"] {
   .button {
     cursor: pointer;
@@ -25,8 +44,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: calc(100% - 2em);
-    width: calc(100% - 2em);
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
     background: #007bff;
     color: white;
     border-radius: 1em;

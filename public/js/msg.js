@@ -20,8 +20,14 @@ let MSGS = {
   '#widget-settings#': {
     en: 'Settings',
   },
+  '#widget-label#': {
+    en: 'Label',
+  },
   '#widget-button#': {
     en: 'Button',
+  },
+  '#widget-display#': {
+    en: 'Display',
   },
 };
 let MSGS_KEYS = Object.keys(MSGS);

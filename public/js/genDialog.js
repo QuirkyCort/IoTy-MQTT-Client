@@ -18,6 +18,22 @@ var genDialog = new function() {
     return obj;
   };
 
+  this.label = function(setting) {
+    let $div = $('<div class="configuration"></div>');
+    let $textBox = $('<div class="label"></div>');
+    $textBox.text(setting.value);
+
+    $div.append(this.title(setting).ele);
+    $div.append($textBox);
+
+    let obj = {
+      ele: $div,
+      values: []
+    }
+
+    return obj;
+  };
+
   this.text = function(setting) {
     let $div = $('<div class="configuration"></div>');
     let $textBox = $('<div class="text"><input type="text"></div>');

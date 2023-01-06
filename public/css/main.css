@@ -49,11 +49,14 @@ main {
   width: 128px;
   top: 0;
   left: 0%;
-  padding: 16px;
+  padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
   background: #bbb;
   transition: left 0.3s; }
+  #widgetToolbox .toolboxLabel {
+    margin-top: 1em;
+    color: gray; }
 
 .newWidget .grid-stack-item-content {
   height: 96px; }
@@ -248,14 +251,27 @@ ul.menuDropDownRightAlign {
 .gridContainer.run .grid-stack-item-content {
   border-color: transparent; }
 
+.grid-stack-item[ioty-type="label"] .label {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  font-weight: bold; }
+
+.grid-stack-item[ioty-type="display"] .display {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  font-weight: bold;
+  background: lightgray;
+  padding: 0.5em;
+  box-sizing: border-box; }
+
 .grid-stack-item[ioty-type="button"] .button {
   cursor: pointer;
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100% - 2em);
-  width: calc(100% - 2em);
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
   background: #007bff;
   color: white;
   border-radius: 1em;
