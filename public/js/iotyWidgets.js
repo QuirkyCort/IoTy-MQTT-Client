@@ -53,13 +53,32 @@ class IotyWidget {
     ele.addEventListener('click', this.settingsDialog.bind(this));
   }
 
+  setSetting(name, value) {
+    for (let setting of this.settings) {
+      if (setting.name == name) {
+        setting.value = value;
+      }
+    }
+  }
+
+  getSetting(name) {
+    for (let setting of this.settings) {
+      if (setting.name == name) {
+        return setting.value;
+      }
+    }
+  }
+
   settingsDialog() {
-    if (main.mode == 'edit' && main.allowSettingsDialog) {
+    if (main.mode == main.MODE_EDIT && main.allowSettingsDialog) {
       let $body = $('<div class="settings"></div>');
+      let values = [];
 
       for (let setting of this.settings) {
         if (setting.type == 'text') {
-          $body.append(genDialog.text(setting));
+          let obj = genDialog.text(setting);
+          $body.append(obj.ele);
+          values.push(...obj.values);
         }
       }
 
@@ -71,9 +90,12 @@ class IotyWidget {
       let $dialog = dialog(i18n.replace(this.widgetName + ' #widget-settings#'), $body, $buttons);
 
       $buttons.siblings('.cancel').click(function() { $dialog.close(); });
-      $buttons.siblings('.confirm').click(function(){
+      $buttons.siblings('.confirm').click((function(){
+        for (let a of values) {
+          this.setSetting(a.name, a.ele.value);
+        }
         $dialog.close();
-      });
+      }).bind(this));
     }
   }
 }
@@ -111,16 +133,16 @@ class IotyButton extends IotyWidget {
   }
 
   buttonDown() {
-    if (main.mode == 'run') {
-      console.log('down');
+    if (main.mode == main.MODE_RUN) {
       this.state = 1;
+      main.publish(this.getSetting('topic'), this.getSetting('press'));
     }
   }
 
   buttonUp() {
-    if (main.mode == 'run' && this.state) {
-      console.log('up');
+    if (main.mode == main.MODE_RUN && this.state) {
       this.state = 0;
+      main.publish(this.getSetting('topic'), this.getSetting('release'));
     }
   }
 }

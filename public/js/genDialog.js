@@ -10,7 +10,12 @@ var genDialog = new function() {
       $title.append($toolTip);
     }
 
-    return $title;
+    let obj = {
+      ele: $title,
+      value: []
+    }
+
+    return obj;
   };
 
   this.text = function(setting) {
@@ -19,10 +24,20 @@ var genDialog = new function() {
     let $input = $textBox.find('input');
     $input.val(setting.value);
 
-    $div.append(this.title(setting));
+    $div.append(this.title(setting).ele);
     $div.append($textBox);
 
-    return $div;
+    let obj = {
+      ele: $div,
+      values: [
+        {
+          name: setting.name,
+          ele: $input[0]
+        }
+      ]
+    }
+
+    return obj;
   };
 
 }

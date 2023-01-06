@@ -1,9 +1,36 @@
 var main = new function() {
   var self = this;
 
-  this.mode = 'edit';
+  this.STATUS_CONNECTED = 1;
+  this.STATUS_DISCONNECTED = 0;
+
+  this.MODE_EDIT = 'edit';
+  this.MODE_RUN = 'run';
+
+  this.mode = this.MODE_EDIT;
   this.gridstackLayout = 'move';
   this.allowSettingsDialog = true;
+
+  this.connectSettings = [
+    {
+      name: 'host',
+      title: 'MQTT Host',
+      type: 'text',
+      value: 'wss://a9i.sg:8081/mqtt'
+    },
+    {
+      name: 'username',
+      title: 'Username',
+      type: 'text',
+      value: ''
+    },
+    {
+      name: 'password',
+      title: 'Password',
+      type: 'text',
+      value: ''
+    },
+  ];
 
   // Run on page load
   this.init = function() {
@@ -30,7 +57,7 @@ var main = new function() {
   };
 
   this.run = function() {
-    self.mode = 'run';
+    self.mode = self.MODE_RUN;
     self.$addNewWidget.addClass('hide');
     self.$run.addClass('hide');
     self.$trash.addClass('hide');
@@ -40,7 +67,7 @@ var main = new function() {
   };
 
   this.stop = function() {
-    self.mode = 'edit';
+    self.mode = self.MODE_EDIT;
     self.$addNewWidget.removeClass('hide');
     self.$run.removeClass('hide');
     self.$trash.removeClass('hide');
@@ -173,13 +200,124 @@ var main = new function() {
       e.stopPropagation();
 
       let menuItems = [
-        {html: i18n.get('#main-connect#'), line: false, callback: ble.connect },
-        {html: i18n.get('#main-disconnect#'), line: false, callback: ble.disconnect},
+        {html: i18n.get('#main-connect#'), line: false, callback: self.connectDialog },
+        {html: i18n.get('#main-disconnect#'), line: false, callback: self.disconnect},
       ];
 
       menuDropDown(self.$connectMenu, menuItems, {className: 'connectMenuDropDown', align: 'right'});
     }
   };
+
+  this.setSetting = function(settings, name, value) {
+    for (let setting of settings) {
+      if (setting.name == name) {
+        setting.value = value;
+      }
+    }
+  };
+
+  this.getSetting = function(settings, name) {
+    for (let setting of settings) {
+      if (setting.name == name) {
+        return setting.value;
+      }
+    }
+  };
+
+  this.connectDialog = function() {
+    let $body = $('<div class="settings"></div>');
+    let values = [];
+
+    for (let setting of self.connectSettings) {
+      if (setting.type == 'text') {
+        let obj = genDialog.text(setting);
+        $body.append(obj.ele);
+        values.push(...obj.values);
+      }
+    }
+
+    let $buttons = $(
+      '<button type="button" class="cancel btn-light">Cancel</button>' +
+      '<button type="button" class="confirm btn-success">Connect</button>'
+    );
+
+    let $dialog = dialog(i18n.replace('#main-connect#'), $body, $buttons);
+
+    $buttons.siblings('.cancel').click(function() { $dialog.close(); });
+    $buttons.siblings('.confirm').click((function(){
+      for (let a of values) {
+        self.setSetting(self.connectSettings, a.name, a.ele.value);
+      }
+      self.connect();
+      $dialog.close();
+    }));
+  };
+
+  this.connect = function() {
+    self.$connectWindow = self.hiddenButtonDialog('Connecting to Server', 'Connecting...');
+    let hostname = self.getSetting(self.connectSettings, 'host');
+    let clientID = self.genClientID();
+    self.client = new Paho.MQTT.Client(hostname, clientID);
+    self.client.onConnectionLost = self.onConnectionLost;
+    self.client.onMessageArrived = self.onMessageArrived;
+    self.client.connect({
+      onSuccess: self.onConnect,
+      userName: self.getSetting(self.connectSettings, 'username'),
+      password: self.getSetting(self.connectSettings, 'password')
+    });
+    self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
+  };
+
+  this.disconnect = function() {
+    self.client.disconnect();
+  };
+
+  this.connectTimeout = function() {
+    self.$connectWindow.$body.text('Connection timed out. Make sure your username and password are correct.');
+    self.$connectWindow.$buttonsRow.removeClass('hide');
+  };
+
+  this.onConnect = function() {
+    window.clearInterval(self.connectTimeoutID);
+    self.$connectWindow.close();
+    self.setConnectStatus(self.STATUS_CONNECTED);
+  };
+
+  this.onConnectionLost = function(responseObject) {
+    window.clearInterval(self.connectTimeoutID);
+    self.setConnectStatus(self.STATUS_DISCONNECTED);
+    if (responseObject.errorCode !== 0) {
+      toastMsg('Connection Lost: ' + responseObject.errorMessage);
+    }
+  };
+
+  this.onMessageArrived = function(message) {
+    console.log("onMessageArrived:"+message.payloadString);
+  };
+
+  this.publish = function(topic, payload) {
+    let message = new Paho.MQTT.Message(payload);
+    message.destinationName = topic;
+    self.client.send(message);
+  };
+
+  this.hiddenButtonDialog = function(title, body) {
+    let $dialog = acknowledgeDialog({
+      title: title,
+      message: body
+    });
+    $dialog.$buttonsRow.addClass('hide');
+
+    return $dialog;
+  };
+
+  this.genClientID = function() {
+    let rand = '';
+    for (let i=0; i<8; i++) {
+      rand += Math.random().toString()[2];
+    }
+    return 'IoTy-' + rand;
+  }
 
   // Set connect status
   this.setConnectStatus = function(status) {
