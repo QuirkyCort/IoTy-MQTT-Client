@@ -367,7 +367,8 @@ var main = new function() {
     self.client.connect({
       onSuccess: self.onConnect,
       userName: self.getSetting(self.connectSettings, 'username'),
-      password: self.getSetting(self.connectSettings, 'password')
+      password: self.getSetting(self.connectSettings, 'password'),
+      reconnect: true
     });
     self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
     self.setLastConnectSuccess('false');
