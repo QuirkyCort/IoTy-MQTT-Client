@@ -1,7 +1,7 @@
 # IoTy-MQTT-Client
 MQTT Client for the IoTy project
 
-Try it here: https://quirkycort.github.io/IoTy-MQTT-Client/
+Try it here: https://quirkycort.github.io/IoTy-MQTT-Client/public
 
 Notes:
 * If using the a9i.sg MQTT broker, topics must start with the username. ie. If your username is "foo", your topics can be "foo/bar", "foo/test", "foo/button", but not "button".
