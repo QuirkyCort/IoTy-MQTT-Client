@@ -32,6 +32,9 @@ let MSGS = {
   '#widget-switch#': {
     en: 'Switch',
   },
+  '#widget-hSlider#': {
+    en: 'H-Slider',
+  },
   '#widget-display#': {
     en: 'Display',
   },

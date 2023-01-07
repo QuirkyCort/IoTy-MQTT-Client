@@ -133,7 +133,14 @@ var main = new function() {
   this.initWidgetToolbox = function() {
     // Close when dragged out
     let dragging = false;
-    self.$widgetToolbox[0].addEventListener('pointerdown', function() {
+    self.$widgetToolbox[0].addEventListener('pointerdown', function(evt) {
+      if (
+        evt.target.classList.contains('widgetToolbox')
+        || evt.target.classList.contains('row')
+        || evt.target.classList.contains('toolboxLabel')
+      ) {
+        return;
+      }
       dragging = true;
     });
     self.$widgetToolbox[0].addEventListener('pointerup', function() {
@@ -147,14 +154,22 @@ var main = new function() {
     });
 
     // Draw widgets
-    self.$widgetToolbox.append('<div class="toolboxLabel">Label</div>');
-    self.$widgetToolbox.append(new IotyLabel().draw());
-    self.$widgetToolbox.append('<div class="toolboxLabel">Button</div>');
-    self.$widgetToolbox.append(new IotyButton().draw());
-    self.$widgetToolbox.append('<div class="toolboxLabel">Switch</div>');
-    self.$widgetToolbox.append(new IotySwitch().draw());
-    self.$widgetToolbox.append('<div class="toolboxLabel">Display</div>');
-    self.$widgetToolbox.append(new IotyDisplay().draw());
+    function addWidget(WidgetClass) {
+      let widget = new WidgetClass();
+      let name = i18n.get(widget.widgetName);
+      let html = widget.draw();
+
+      self.$widgetToolbox.append(
+        '<div class="row">' +
+          html +
+          '<div class="toolboxLabel">' + name + '</div>' +
+        '</div>'
+      )
+    }
+
+    for (let widget of IOTY_WIDGETS) {
+      addWidget(widget.widgetClass);
+    }
   };
 
   this.closeWidgetToolbox = function() {
@@ -589,14 +604,11 @@ var main = new function() {
     for (let widget of save.widgets) {
       let content;
 
-      if (widget.type == 'button') {
-        content = new IotyButton().draw();
-      } else if (widget.type == 'switch') {
-        content = new IotySwitch().draw();
-      } else if (widget.type == 'label') {
-        content = new IotyLabel().draw();
-      } else if (widget.type == 'display') {
-        content = new IotyDisplay().draw();
+      for (let iotyWidget of IOTY_WIDGETS) {
+        if (widget.type == iotyWidget.type) {
+          content = new iotyWidget.widgetClass().draw();
+          break;
+        }
       }
       let ele = self.grid.addWidget(content, {
         x: widget.x,

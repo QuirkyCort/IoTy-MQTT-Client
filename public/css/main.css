@@ -46,17 +46,26 @@ main {
 #widgetToolbox {
   position: absolute;
   height: 100%;
-  max-width: 128px;
+  max-width: 200px;
   top: 0;
   left: 0%;
   padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
   background: #bbb;
+  overflow-x: hide;
+  overflow-y: auto;
   transition: left 0.3s; }
+  #widgetToolbox .row {
+    display: flex;
+    align-items: center;
+    margin-top: 1em; }
   #widgetToolbox .toolboxLabel {
-    margin-top: 1em;
+    margin-left: 0.5em;
     color: gray; }
+
+#widgetToolbox.hide {
+  left: -200px; }
 
 #trash {
   color: #aaa;
@@ -69,9 +78,6 @@ main {
 
 #trash:hover {
   background: pink; }
-
-#widgetToolbox.hide {
-  left: -128px; }
 
 #addNewWidget, #run, #stop {
   display: flex;
@@ -253,6 +259,7 @@ ul.menuDropDownRightAlign {
   width: 80px; }
 
 .grid-stack-item-content {
+  inset: 2px !important;
   background-color: white;
   display: flex;
   align-items: center;
@@ -318,6 +325,19 @@ ul.menuDropDownRightAlign {
     background-color: #007bff; }
     .grid-stack-item[ioty-type="switch"] .switch .track.on .thumb {
       left: calc(100% - 1.8em); }
+
+.grid-stack-item[ioty-type="hSlider"] .hSlider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(100% - 1em); }
+  .grid-stack-item[ioty-type="hSlider"] .hSlider .row1 {
+    display: flex;
+    justify-content: space-between;
+    width: 100%; }
+  .grid-stack-item[ioty-type="hSlider"] .hSlider input[type="range"] {
+    width: 100%;
+    margin: 1em 0 0 0; }
 
 .configuration {
   padding: 0.5em 0em; }

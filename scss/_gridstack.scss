@@ -10,6 +10,7 @@
 }
 
 .grid-stack-item-content {
+  inset: 2px !important;
   background-color: white;
   display: flex;
   align-items: center;
@@ -98,6 +99,26 @@
       .thumb {
         left: calc(100% - 1.8em);
       }
+    }
+  }
+}
+
+.grid-stack-item[ioty-type="hSlider"] {
+  .hSlider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc(100% - 1em);
+
+    .row1 {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 1em 0 0 0;
     }
   }
 }

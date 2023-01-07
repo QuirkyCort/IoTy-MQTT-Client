@@ -60,19 +60,31 @@ main {
 #widgetToolbox {
   position: absolute;
   height: 100%;
-  max-width: 128px;
+  max-width: 200px;
   top: 0;
   left: 0%;
   padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
   background: #bbb;
+  overflow-x: hide;
+  overflow-y: auto;
   transition: left 0.3s;
 
-  .toolboxLabel {
+  .row {
+    display: flex;
+    align-items: center;
     margin-top: 1em;
+  }
+  .toolboxLabel {
+    // margin-top: 1em;
+    margin-left: 0.5em;
     color: gray;
   }
+}
+
+#widgetToolbox.hide {
+  left: -200px;
 }
 
 #trash {
@@ -87,10 +99,6 @@ main {
 
 #trash:hover {
   background: pink;
-}
-
-#widgetToolbox.hide {
-  left: -128px;
 }
 
 #addNewWidget, #run, #stop {

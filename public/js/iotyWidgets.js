@@ -308,6 +308,108 @@ class IotySwitch extends IotyWidget {
   }
 }
 
+class IotyHSlider extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="hSlider">' +
+        '<div class="row1">' +
+          '<div class="label">Slider</div>' +
+          '<div class="value">0</div>' +
+        '</div>' +
+        '<input type="range" value="0">' +
+      '</div>';
+    this.options.type = 'hSlider';
+    this.widgetName = '#widget-hSlider#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The slider widget will publish its value to the specified topic when changed.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value for the slider.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum value for the slider.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Switch',
+        help: 'Text above the switch.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let input = ele.querySelector('input');
+    input.addEventListener('input', this.change.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    let input = this.element.querySelector('input');
+    let min = Number(this.getSetting('min'));
+    let max = Number(this.getSetting('max'));
+
+    if (isNaN(min)) {
+      min = 0;
+    }
+    if (isNaN(max)) {
+      max = 255;
+    }
+
+    let val = input.value;
+    val = Math.max(min, Math.min(max, val));
+
+    input.min = min;
+    input.max = max;
+    input.value = val;
+
+    let value = this.element.querySelector('.value');
+    value.innerText = val;
+  }
+
+  change(evt) {
+    if (main.mode == main.MODE_RUN) {
+      let value = this.element.querySelector('.value');
+      let input = this.element.querySelector('input');
+
+      value.innerText = input.value;
+      main.publish(this.getSetting('topic'), input.value);
+    }
+  }
+}
+
 class IotyDisplay extends IotyWidget {
   constructor() {
     super();
@@ -350,6 +452,14 @@ class IotyDisplay extends IotyWidget {
   }
 }
 
+IOTY_WIDGETS = [
+  { type: 'button', widgetClass: IotyButton},
+  { type: 'switch', widgetClass: IotySwitch},
+  { type: 'hSlider', widgetClass: IotyHSlider},
+  { type: 'label', widgetClass: IotyLabel},
+  { type: 'display', widgetClass: IotyDisplay},
+];
+
 // Helper function to attach widget to element
 function attachIotyWidget(ele) {
   if (typeof ele.widget != 'undefined') {
@@ -357,14 +467,11 @@ function attachIotyWidget(ele) {
   }
 
   let widget;
-  if (ele.getAttribute('ioty-type') == 'button') {
-    widget = new IotyButton();
-  } else if (ele.getAttribute('ioty-type') == 'switch') {
-    widget = new IotySwitch()
-  } else if (ele.getAttribute('ioty-type') == 'label') {
-    widget = new IotyLabel()
-  } else if (ele.getAttribute('ioty-type') == 'display') {
-    widget = new IotyDisplay()
+  for (let iotyWidget of IOTY_WIDGETS) {
+    if (ele.getAttribute('ioty-type') == iotyWidget.type) {
+      widget = new iotyWidget.widgetClass();
+      break;
+    }
   }
 
   widget.attach(ele);
