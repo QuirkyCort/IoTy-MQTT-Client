@@ -4,7 +4,7 @@ function readGET(name) {
   if (results==null){
     return null;
   } else {
-    return decodeURI(results[1]);
+    return decodeURIComponent(results[1]);
   }
 }
 

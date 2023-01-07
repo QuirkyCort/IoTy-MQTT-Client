@@ -61,18 +61,58 @@ var main = new function() {
     self.$trash.click(self.trashInfo);
     self.$run.click(self.run);
     self.$stop.click(self.stop);
+
+    self.linkMode = self.loadGET();
+
+    self.autoConnect();
+    if (self.linkMode) {
+      self.activateLinkMode();
+    }
   };
 
-  this.run = function() {
-    if (self.client)
+  this.activateLinkMode = function() {
     self.mode = self.MODE_RUN;
     self.$addNewWidget.addClass('hide');
     self.$run.addClass('hide');
     self.$trash.addClass('hide');
-    self.$stop.removeClass('hide');
+    self.$connectMenu.addClass('hide');
     self.$gridContainer.addClass('run');
     self.grid.disable();
-    self.subscribeAll();
+  };
+
+  this.loadGET = function() {
+    let host = readGET('host');
+    let username = readGET('username');
+    let password = readGET('password');
+
+    if (username && password) {
+      self.setSetting(self.connectSettings, 'host', host);
+      self.setSetting(self.connectSettings, 'username', username);
+      self.setSetting(self.connectSettings, 'password', password);
+      return true;
+    }
+    return false;
+  };
+
+  this.autoConnect = function() {
+    if (this.getLastConnectSuccess() == 'true') {
+      self.connect();
+    }
+  };
+
+  this.run = function() {
+    if (self.connected) {
+      self.mode = self.MODE_RUN;
+      self.$addNewWidget.addClass('hide');
+      self.$run.addClass('hide');
+      self.$trash.addClass('hide');
+      self.$stop.removeClass('hide');
+      self.$gridContainer.addClass('run');
+      self.grid.disable();
+      self.subscribeAll();
+    } else {
+      toastMsg('Connect to server first.');
+    }
   };
 
   this.stop = function() {
@@ -216,11 +256,43 @@ var main = new function() {
       let menuItems = [
         {html: i18n.get('#main-connect#'), line: false, callback: self.connectDialog },
         {html: i18n.get('#main-disconnect#'), line: false, callback: self.disconnect},
+        {html: i18n.get('#main-get_link#'), line: false, callback: self.getLink },
       ];
 
       menuDropDown(self.$connectMenu, menuItems, {className: 'connectMenuDropDown', align: 'right'});
     }
   };
+
+  this.getLink = function() {
+    let host = encodeURIComponent(self.getSetting(self.connectSettings, 'host'));
+    let username = encodeURIComponent(self.getSetting(self.connectSettings, 'username'));
+    let password = encodeURIComponent(self.getSetting(self.connectSettings, 'password'));
+    const url = location.href + '?host=' + host + '&username=' + username + '&password=' + password;
+    let $body = $(
+      '<div>' +
+        '<p>This link allows anyone to access your app without having to login.</p>' +
+        '<p class="shareLink">' + url + '&nbsp;&nbsp;<span class="copy">Copy</span></p>' +
+      '</div>'
+    );
+    var $copy = $body.find('.copy');
+    $copy.click(function() {
+      toastMsg('Copied!');
+
+      let $textarea = $('<textarea style="position: absolute; top: -9999px; left: -9999px;"></textarea>');
+      $('body').append($textarea);
+      $textarea.val(url);
+      $textarea[0].select();
+      $textarea[0].setSelectionRange(0, 99999); /*For mobile devices*/
+      document.execCommand("copy");
+      $('body').remove($textarea);
+    });
+
+    var options = {
+      title: 'Share Link',
+      message: $body
+    };
+    acknowledgeDialog(options);
+  }
 
   this.setSetting = function(settings, name, value) {
     for (let setting of settings) {
@@ -281,6 +353,15 @@ var main = new function() {
       password: self.getSetting(self.connectSettings, 'password')
     });
     self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
+    self.setLastConnectSuccess('false');
+  };
+
+  this.setLastConnectSuccess = function(status) {
+    localStorage.setItem('lastConnectSuccess', status);
+  };
+
+  this.getLastConnectSuccess = function() {
+    return localStorage.getItem('lastConnectSuccess');
   };
 
   this.disconnect = function() {
@@ -301,6 +382,7 @@ var main = new function() {
     self.setConnectStatus(self.STATUS_CONNECTED);
     let username = self.getSetting(self.connectSettings, 'username');
     self.client.subscribe(username + '/' + self.PROJECT_SAVE_TOPIC);
+    self.setLastConnectSuccess('true');
   };
 
   this.onConnectionLost = function(responseObject) {
@@ -316,6 +398,11 @@ var main = new function() {
     let username = self.getSetting(self.connectSettings, 'username');
     if (message.destinationName == username + '/' + self.PROJECT_SAVE_TOPIC) {
       self.loadProject(message.payloadString);
+
+      if (self.linkMode) {
+        self.subscribeAll();
+      }
+
       return;
     }
 
@@ -492,6 +579,7 @@ var main = new function() {
   };
 
   this.loadJSON = function(json) {
+    self.grid.removeAll();
     let save = JSON.parse(json);
 
     for (let widget of save.widgets) {
@@ -526,8 +614,36 @@ var main = new function() {
       self.loadJSON(json);
       self.jsonSave = json;
     } else if (json != self.jsonSave) {
-      toastMsg('prompt not implemented yet');
+      self.selectLocalOrRemoteSave(json);
     }
+  };
+
+  this.selectLocalOrRemoteSave = function(json) {
+    let $body = $('<div class="settings"></div>');
+    let $msg = $(
+      '<div>' +
+        'The project file on the server differs from the one on your browser. ' +
+        'Which copy should I keep?' +
+      '</div>'
+    );
+    $body.append($msg);
+
+    let $buttons = $(
+      '<button type="button" class="local btn-light">Keep local copy</button>' +
+      '<button type="button" class="remote btn-light">Use remote copy</button>'
+    );
+
+    let $dialog = dialog('Local or Remote?', $body, $buttons);
+
+    $buttons.siblings('.local').click(function() {
+      self.saveAndPublishJSON();
+      $dialog.close();
+    });
+    $buttons.siblings('.remote').click((function(){
+      self.loadJSON(json);
+      self.jsonSave = json;
+      $dialog.close();
+    }).bind(this));
   };
 
   // Set connect status

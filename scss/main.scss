@@ -108,7 +108,7 @@ main {
   user-select: none;
 }
 
-#addNewWidget.hide, #run.hide, #stop.hide, #trash.hide {
+#addNewWidget.hide, #run.hide, #stop.hide, #trash.hide, #connectMenu.hide {
   display: none;
 }
 
@@ -171,6 +171,23 @@ ul.menuDropDown {
 
 ul.menuDropDownRightAlign {
   top: 100%;
+}
+
+.dialogWindow {
+  .shareLink {
+    font-weight: bold;
+    font-size: 120%;
+    overflow-wrap: anywhere;
+
+    .copy {
+      cursor: pointer;
+      user-select: none;
+      padding: 0.2em 0.5em;
+      border-radius: 0.5em;
+      background: white;
+      color: gray;
+    }
+  }
 }
 
 @import '_font.scss';

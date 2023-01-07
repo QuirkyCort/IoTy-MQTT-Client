@@ -17,6 +17,9 @@ let MSGS = {
   '#main-disconnect#': {
     en: 'Disconnect',
   },
+  '#main-get_link#': {
+    en: 'Get Link',
+  },
   '#widget-settings#': {
     en: 'Settings',
   },
