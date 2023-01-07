@@ -29,6 +29,9 @@ let MSGS = {
   '#widget-button#': {
     en: 'Button',
   },
+  '#widget-switch#': {
+    en: 'Switch',
+  },
   '#widget-display#': {
     en: 'Display',
   },

@@ -151,6 +151,8 @@ var main = new function() {
     self.$widgetToolbox.append(new IotyLabel().draw());
     self.$widgetToolbox.append('<div class="toolboxLabel">Button</div>');
     self.$widgetToolbox.append(new IotyButton().draw());
+    self.$widgetToolbox.append('<div class="toolboxLabel">Switch</div>');
+    self.$widgetToolbox.append(new IotySwitch().draw());
     self.$widgetToolbox.append('<div class="toolboxLabel">Display</div>');
     self.$widgetToolbox.append(new IotyDisplay().draw());
   };
@@ -587,6 +589,8 @@ var main = new function() {
 
       if (widget.type == 'button') {
         content = new IotyButton().draw();
+      } else if (widget.type == 'switch') {
+        content = new IotySwitch().draw();
       } else if (widget.type == 'label') {
         content = new IotyLabel().draw();
       } else if (widget.type == 'display') {

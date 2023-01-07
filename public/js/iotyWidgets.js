@@ -148,7 +148,7 @@ class IotyLabel extends IotyWidget {
 class IotyButton extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="button"><div>BTN</div></div>'
+    this.content = '<div class="button"><div>Btn</div></div>'
     this.options.type = 'button';
     this.widgetName = '#widget-button#';
     this.state = 0;
@@ -189,7 +189,7 @@ class IotyButton extends IotyWidget {
         name: 'label',
         title: 'Label',
         type: 'text',
-        value: 'BTN',
+        value: 'Btn',
         help: 'Text on the button.',
         save: true
       },
@@ -221,6 +221,89 @@ class IotyButton extends IotyWidget {
     if (main.mode == main.MODE_RUN && this.state) {
       this.state = 0;
       main.publish(this.getSetting('topic'), this.getSetting('release'));
+    }
+  }
+}
+
+class IotySwitch extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="switch">' +
+        '<div class="label">Switch</div>' +
+        '<div class="track"><div class="thumb"></div></div>' +
+      '</div>';
+    this.options.type = 'switch';
+    this.widgetName = '#widget-switch#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The switch widget will publish a message to the specified topic when the switched on, and another message when off.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'on',
+        title: 'Send on On',
+        type: 'text',
+        value: '1',
+        help: 'This value will be published when the switch is on.',
+        save: true
+      },
+      {
+        name: 'off',
+        title: 'Send on Off',
+        type: 'text',
+        value: '0',
+        help: 'This value will be published when the switch is off.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Switch',
+        help: 'Text above the switch.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let toggleSwitch = ele.querySelector('.switch');
+    toggleSwitch.addEventListener('click', this.toggle.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+  }
+
+  toggle() {
+    if (main.mode == main.MODE_RUN) {
+      this.state ^= 1; // toggle state
+      let track = this.element.querySelector('.track');
+
+      if (this.state == 1) {
+        main.publish(this.getSetting('topic'), this.getSetting('on'));
+        track.classList.add('on');
+      } else {
+        main.publish(this.getSetting('topic'), this.getSetting('off'));
+        track.classList.remove('on');
+      }
     }
   }
 }
@@ -276,6 +359,8 @@ function attachIotyWidget(ele) {
   let widget;
   if (ele.getAttribute('ioty-type') == 'button') {
     widget = new IotyButton();
+  } else if (ele.getAttribute('ioty-type') == 'switch') {
+    widget = new IotySwitch()
   } else if (ele.getAttribute('ioty-type') == 'label') {
     widget = new IotyLabel()
   } else if (ele.getAttribute('ioty-type') == 'display') {

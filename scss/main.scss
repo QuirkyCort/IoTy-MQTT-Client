@@ -60,7 +60,7 @@ main {
 #widgetToolbox {
   position: absolute;
   height: 100%;
-  width: 128px;
+  max-width: 128px;
   top: 0;
   left: 0%;
   padding: 0 16px;
@@ -72,12 +72,6 @@ main {
   .toolboxLabel {
     margin-top: 1em;
     color: gray;
-  }
-}
-
-.newWidget {
-  .grid-stack-item-content {
-    height: 96px;
   }
 }
 
