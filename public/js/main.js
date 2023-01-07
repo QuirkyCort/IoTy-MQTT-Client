@@ -17,6 +17,7 @@ var main = new function() {
   this.jsonSave = '';
   this.connected = false;
   this.linkMode = false;
+  this.localOrRemoteDialog = null;
 
   this.connectSettings = [
     {
@@ -633,13 +634,20 @@ var main = new function() {
     if (self.jsonSave == '' || self.linkMode) {
       self.loadJSON(json);
       self.jsonSave = json;
-    } else if (json != self.jsonSave) {
+    } else if (json == self.jsonSave) {
+      if (this.localOrRemoteDialog) {
+        this.localOrRemoteDialog.close();
+      }
+    } else {
+      if (this.localOrRemoteDialog) {
+        this.localOrRemoteDialog.close();
+      }
       self.selectLocalOrRemoteSave(json);
     }
   };
 
   this.selectLocalOrRemoteSave = function(json) {
-    let $body = $('<div class="settings"></div>');
+    let $body = $('<div class="selectLocalOrRemoteSave"></div>');
     let $msg = $(
       '<div>' +
         'The project file on the server differs from the one on your browser. ' +
@@ -654,15 +662,18 @@ var main = new function() {
     );
 
     let $dialog = dialog('Local or Remote?', $body, $buttons);
+    this.localOrRemoteDialog = $dialog;
 
     $buttons.siblings('.local').click(function() {
       self.saveAndPublishJSON();
       $dialog.close();
+      this.localOrRemoteDialog = null;
     });
     $buttons.siblings('.remote').click((function(){
       self.loadJSON(json);
       self.jsonSave = json;
       $dialog.close();
+      this.localOrRemoteDialog = null;
     }).bind(this));
   };
 
