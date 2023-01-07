@@ -178,8 +178,9 @@ ul.menuDropDownRightAlign {
 .dialogWindow {
   .shareLink {
     font-weight: bold;
-    font-size: 120%;
     overflow-wrap: anywhere;
+    display: flex;
+    align-items: center;
 
     .copy {
       cursor: pointer;
@@ -188,8 +189,15 @@ ul.menuDropDownRightAlign {
       border-radius: 0.5em;
       background: white;
       color: gray;
+      flex-shrink: 0;
+      height: 1em;
     }
   }
+}
+
+#linkQRCode {
+  display: flex;
+  justify-content: center;
 }
 
 @import '_font.scss';

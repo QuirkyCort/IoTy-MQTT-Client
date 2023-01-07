@@ -290,7 +290,11 @@ var main = new function() {
     let $body = $(
       '<div>' +
         '<p>This link allows anyone to access your app without having to login.</p>' +
-        '<p class="shareLink">' + url + '&nbsp;&nbsp;<span class="copy">Copy</span></p>' +
+        '<div class="shareLink">' +
+          '<p>' + url + '&nbsp;&nbsp;</p>' +
+          '<div class="copy">Copy</div>' +
+        '</div>' +
+        '<div id="linkQRCode"></div>' +
       '</div>'
     );
     var $copy = $body.find('.copy');
@@ -311,6 +315,14 @@ var main = new function() {
       message: $body
     };
     acknowledgeDialog(options);
+    new QRCode('linkQRCode', {
+      text: url,
+      width: 150,
+      height: 150,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.L
+  });
   }
 
   this.setSetting = function(settings, name, value) {
