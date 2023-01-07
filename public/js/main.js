@@ -444,10 +444,12 @@ var main = new function() {
 
   this.loadConnectSettings = function() {
     let settings = JSON.parse(localStorage.getItem('connectSettings'));
-
-    for (let setting of this.connectSettings) {
-      setting.value = settings[setting.name];
+    if (typeof settings == 'object') {
+      for (let setting of this.connectSettings) {
+        setting.value = settings[setting.name];
+      }
     }
+
   };
 
   this.subscribeAll = function() {
