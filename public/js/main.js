@@ -444,7 +444,7 @@ var main = new function() {
 
   this.loadConnectSettings = function() {
     let settings = JSON.parse(localStorage.getItem('connectSettings'));
-    if (typeof settings == 'object') {
+    if (settings instanceof Object) {
       for (let setting of this.connectSettings) {
         setting.value = settings[setting.name];
       }
