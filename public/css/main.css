@@ -346,6 +346,22 @@ ul.menuDropDownRightAlign {
     width: 100%;
     margin: 1em 0 0 0; }
 
+.grid-stack-item[ioty-type="hBar"] .hBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: calc(100% - 1em); }
+  .grid-stack-item[ioty-type="hBar"] .hBar .row1 {
+    display: flex;
+    justify-content: space-between;
+    width: 100%; }
+  .grid-stack-item[ioty-type="hBar"] .hBar progress {
+    width: 100%;
+    margin-top: 1em;
+    height: 2em; }
+  .grid-stack-item[ioty-type="hBar"] .hBar progress::-webkit-progress-value, .grid-stack-item[ioty-type="hBar"] .hBar progress::-moz-progress-bar {
+    background: #007bff; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file] {

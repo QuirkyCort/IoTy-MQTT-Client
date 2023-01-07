@@ -360,7 +360,7 @@ class IotyHSlider extends IotyWidget {
         title: 'Label',
         type: 'text',
         value: 'Switch',
-        help: 'Text above the switch.',
+        help: 'Text above the slider.',
         save: true
       },
     ];
@@ -452,12 +452,97 @@ class IotyDisplay extends IotyWidget {
   }
 }
 
+class IotyHBar extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="hBar">' +
+        '<div class="row1">' +
+          '<div class="label">Gauge</div>' +
+          '<div class="value">0</div>' +
+        '</div>' +
+        '<progress value="0.5" max="1"></progress>' +
+      '</div>';
+    this.options.type = 'hBar';
+    this.widgetName = '#widget-hBar#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The bar gauge widget will display whatever values it receives.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Gauge',
+        help: 'Text above the gauge.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    let progress = this.element.querySelector('progress');
+
+  }
+
+  onMessageArrived(payload) {
+    let value = this.element.querySelector('.value');
+    value.innerText = payload;
+
+    let pos = (Number(payload) - Number(this.getSetting('min'))) / Number(this.getSetting('max'));
+
+    let progress = this.element.querySelector('progress');
+    progress.value = pos;
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
   { type: 'hSlider', widgetClass: IotyHSlider},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
+  { type: 'hBar', widgetClass: IotyHBar},
 ];
 
 // Helper function to attach widget to element

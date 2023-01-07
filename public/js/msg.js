@@ -33,10 +33,13 @@ let MSGS = {
     en: 'Switch',
   },
   '#widget-hSlider#': {
-    en: 'H-Slider',
+    en: 'Slider',
   },
   '#widget-display#': {
     en: 'Display',
+  },
+  '#widget-hBar#': {
+    en: 'Bar Gauge',
   },
 };
 let MSGS_KEYS = Object.keys(MSGS);

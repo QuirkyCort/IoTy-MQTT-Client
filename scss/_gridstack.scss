@@ -122,3 +122,28 @@
     }
   }
 }
+
+.grid-stack-item[ioty-type="hBar"] {
+  .hBar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc(100% - 1em);
+
+    .row1 {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    progress {
+      width: 100%;
+      margin-top: 1em;
+      height: 2em;
+    }
+
+    progress::-webkit-progress-value, progress::-moz-progress-bar {
+      background: #007bff;
+    }
+  }
+}
