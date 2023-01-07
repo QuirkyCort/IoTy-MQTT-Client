@@ -16,6 +16,7 @@ var main = new function() {
   this.subscriptions = [];
   this.jsonSave = '';
   this.connected = false;
+  this.linkMode = false;
 
   this.connectSettings = [
     {
@@ -629,7 +630,7 @@ var main = new function() {
   };
 
   this.loadProject = function(json) {
-    if (self.jsonSave == '') {
+    if (self.jsonSave == '' || self.linkMode) {
       self.loadJSON(json);
       self.jsonSave = json;
     } else if (json != self.jsonSave) {
