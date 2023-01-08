@@ -536,10 +536,270 @@ class IotyHBar extends IotyWidget {
   }
 }
 
+class IotyColor extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="color">' +
+        '<img src="images/hsv.jpg" draggable="false">' +
+        '<div class="selector"></div>' +
+        '<div class="label">Color</div>' +
+        '<input type="range" value="255" max="255">' +
+      '</div>';
+    this.options.type = 'color';
+    this.widgetName = '#widget-color#';
+    this.hsv = [0,0,255];
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The color widget will publish its RGB values (comma separated float) to the specified topic when changed.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum RGB value.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum RGB value.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Color',
+        help: 'Text above the widget.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let input = ele.querySelector('input');
+    input.addEventListener('input', this.change.bind(this));
+
+    let img = ele.querySelector('img');
+    img.addEventListener('dragstart', function() { return false; })
+    img.addEventListener('pointerdown', this.pointerdown.bind(this));
+    img.addEventListener('pointermove', this.pointermove.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    let input = this.element.querySelector('input');
+    let min = Number(this.getSetting('min'));
+    let max = Number(this.getSetting('max'));
+
+    if (isNaN(min)) {
+      min = 0;
+    }
+    if (isNaN(max)) {
+      max = 255;
+    }
+
+    let val = input.value;
+    val = Math.max(min, Math.min(max, val));
+
+    input.min = min;
+    input.max = max;
+    input.value = val;
+  }
+
+  pointerdown(evt) {
+    if (main.mode == main.MODE_RUN) {
+      let selector = this.element.querySelector('.selector');
+
+      let x = 2 * (evt.offsetX / evt.target.offsetWidth - 0.5);
+      let y = 2 * (evt.offsetY / evt.target.offsetHeight - 0.5);
+
+      let r = Math.sqrt(x**2 + y**2);
+      r = Math.min(r, 1);
+      let theta = Math.atan2(y, x);
+      if (theta < 0) {
+        theta += 2 * Math.PI;
+      }
+
+      x = (r * Math.cos(theta) + 1) / 2;
+      y = (r * Math.sin(theta) + 1) / 2;
+      let imgLeft = evt.target.offsetLeft;
+      let imgTop = evt.target.offsetTop;
+      let imgWidth = evt.target.offsetWidth;
+      let imgHeight = evt.target.offsetHeight;
+
+      selector.style.left = (imgLeft + x * imgWidth - (selector.offsetWidth / 2)) + 'px';
+      selector.style.top = (imgTop + y * imgHeight - (selector.offsetHeight / 2)) + 'px';
+
+      this.hsv[0] = ((theta / Math.PI * 180) + 90) % 360;
+      this.hsv[1] = r;
+
+      let rgb = this.hsv2rgb(this.hsv);
+      this.publish(rgb);
+    }
+  }
+
+  hsv2rgb(hsv) {
+    let M = hsv[2];
+    let m = M * (1 - hsv[1]);
+    let z = (M - m) * (1 - Math.abs(((hsv[0] / 60) % 2) - 1));
+
+    let rgb = [];
+    if (hsv[0] < 60) {
+      rgb[0] = M;
+      rgb[1] = z + m;
+      rgb[2] = m;
+    } else if (hsv[0] < 120) {
+      rgb[0] = z + m;
+      rgb[1] = M;
+      rgb[2] = m;
+    } else if (hsv[0] < 180) {
+      rgb[0] = m;
+      rgb[1] = M;
+      rgb[2] = z + m;
+    } else if (hsv[0] < 240) {
+      rgb[0] = m;
+      rgb[1] = z + m;
+      rgb[2] = M;
+    } else if (hsv[0] < 300) {
+      rgb[0] = z + m;
+      rgb[1] = m;
+      rgb[2] = M;
+    } else {
+      rgb[0] = M;
+      rgb[1] = m;
+      rgb[2] = z + m;
+    }
+
+    rgb[0] = Math.round(rgb[0]);
+    rgb[1] = Math.round(rgb[1]);
+    rgb[2] = Math.round(rgb[2]);
+    return rgb;
+  }
+
+  pointermove(evt) {
+    if (evt.buttons != 0) {
+      this.pointerdown(evt);
+    }
+  }
+
+  change(evt) {
+    if (main.mode == main.MODE_RUN) {
+      let input = this.element.querySelector('input');
+      this.hsv[2] = Number(input.value);
+      let rgb = this.hsv2rgb(this.hsv);
+      this.publish(rgb);
+    }
+  }
+
+  publish(rgb) {
+    let payload = rgb[0] + ',' + rgb[1] + ',' + rgb[2];
+    main.publish(this.getSetting('topic'), payload);
+  }
+
+}
+
+class IotyColor3 extends IotyColor {
+  constructor() {
+    super();
+    this.options.type = 'color3';
+    this.widgetName = '#widget-color3#';
+
+    this.settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The color 3 widget will publish its RGB values to the separate topics when changed.',
+        save: false
+      },
+      {
+        name: 'topicR',
+        title: 'MQTT Topic for Red',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'topicG',
+        title: 'MQTT Topic for Green',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'topicB',
+        title: 'MQTT Topic for Blue',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum RGB value.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum RGB value.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Color',
+        help: 'Text above the widget.',
+        save: true
+      },
+    ];
+  }
+
+  publish(rgb) {
+    main.publish(this.getSetting('topicR'), String(rgb[0]));
+    main.publish(this.getSetting('topicG'), String(rgb[1]));
+    main.publish(this.getSetting('topicB'), String(rgb[2]));
+  }
+
+}
+
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
   { type: 'hSlider', widgetClass: IotyHSlider},
+  { type: 'color', widgetClass: IotyColor},
+  { type: 'color3', widgetClass: IotyColor3},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'hBar', widgetClass: IotyHBar},

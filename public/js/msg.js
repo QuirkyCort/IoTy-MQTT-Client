@@ -41,6 +41,12 @@ let MSGS = {
   '#widget-hBar#': {
     en: 'Bar Gauge',
   },
+  '#widget-color#': {
+    en: 'Color',
+  },
+  '#widget-color3#': {
+    en: 'Color3',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 
