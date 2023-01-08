@@ -106,6 +106,12 @@ class IotyWidget {
 
   onMessageArrived(payload) {
   }
+
+  disableEvent(evt) {
+    evt.preventDefault();
+    evt.stopImmediatePropagation();
+    return false;
+  }
 }
 
 class IotyLabel extends IotyWidget {
@@ -603,6 +609,7 @@ class IotyColor extends IotyWidget {
     img.addEventListener('dragstart', function() { return false; })
     img.addEventListener('pointerdown', this.pointerdown.bind(this));
     img.addEventListener('pointermove', this.pointermove.bind(this));
+    img.addEventListener('contextmenu', this.disableEvent);
   }
 
   processSettings() {
@@ -731,7 +738,7 @@ class IotyColor3 extends IotyColor {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The color 3 widget will publish its RGB values to the separate topics when changed.',
+        value: 'The color 3 widget will publish its RGB values to separate topics when changed.',
         save: false
       },
       {
