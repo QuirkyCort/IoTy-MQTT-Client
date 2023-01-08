@@ -163,6 +163,7 @@
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      touch-action: none;
     }
 
     .selector {

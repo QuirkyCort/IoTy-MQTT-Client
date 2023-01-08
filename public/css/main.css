@@ -374,7 +374,8 @@ ul.menuDropDownRightAlign {
     margin-top: 10%;
     cursor: pointer;
     user-select: none;
-    -webkit-tap-highlight-color: transparent; }
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none; }
   .grid-stack-item[ioty-type="color"] .color .selector, .grid-stack-item[ioty-type="color3"] .color .selector {
     position: absolute;
     width: 5%;
