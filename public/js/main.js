@@ -97,7 +97,7 @@ var main = new function() {
   };
 
   this.autoConnect = function() {
-    if (this.getLastConnectSuccess() == 'true') {
+    if (this.getLastConnectSuccess() == 'true' || self.linkMode) {
       self.connect();
     }
   };
