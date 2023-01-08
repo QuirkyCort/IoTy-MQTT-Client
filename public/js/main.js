@@ -230,7 +230,9 @@ var main = new function() {
   };
 
   this.gridStackChange = function(e, items) {
-    self.saveAndPublishJSON();
+    if (! self.linkMode) {
+      self.saveAndPublishJSON();
+    }
   };
 
   // Update text already in html
