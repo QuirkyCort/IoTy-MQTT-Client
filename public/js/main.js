@@ -400,7 +400,9 @@ var main = new function() {
 
   this.disconnect = function() {
     self.connected = false;
-    self.client.disconnect();
+    if (self.client) {
+      self.client.disconnect();
+    }
     self.stop();
   };
 
