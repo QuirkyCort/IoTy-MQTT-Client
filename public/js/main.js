@@ -24,7 +24,7 @@ var main = new function() {
       name: 'host',
       title: 'MQTT Host',
       type: 'text',
-      value: 'wss://iot.a9i.sg:8081/mqtt'
+      value: 'wss://mqtt.a9i.sg:8081/mqtt'
     },
     {
       name: 'username',
