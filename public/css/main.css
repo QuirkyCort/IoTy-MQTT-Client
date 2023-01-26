@@ -417,6 +417,9 @@ ul.menuDropDownRightAlign {
       text-align: right; }
   .configuration .text input[type=text] {
     width: 100%; }
+  .configuration .check input[type=checkbox] {
+    width: 1em;
+    height: 1em; }
 
 .tooltip {
   position: relative;

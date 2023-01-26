@@ -56,4 +56,26 @@ var genDialog = new function() {
     return obj;
   };
 
+  this.check = function(setting) {
+    let $div = $('<div class="configuration"></div>');
+    let $checkBox = $('<div class="check"><input type="checkbox"></div>');
+    let $input = $checkBox.find('input');
+    $input.val(setting.value);
+
+    $div.append(this.title(setting).ele);
+    $div.append($checkBox);
+
+    let obj = {
+      ele: $div,
+      values: [
+        {
+          name: setting.name,
+          ele: $input[0]
+        }
+      ]
+    }
+
+    return obj;
+  };
+
 }

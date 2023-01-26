@@ -47,6 +47,9 @@ let MSGS = {
   '#widget-color3#': {
     en: 'Color3',
   },
+  '#widget-notification#': {
+    en: 'Notification',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

@@ -76,6 +76,9 @@ class IotyWidget {
           values.push(...obj.values);
         } else if (setting.type == 'label') {
           obj = genDialog.label(setting);
+        } else if (setting.type == 'check') {
+          obj = genDialog.check(setting);
+          values.push(...obj.values);
         }
         $body.append(obj.ele);
       }
@@ -800,6 +803,63 @@ class IotyColor3 extends IotyColor {
 
 }
 
+class IotyNotification extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="notification"><div></div></div>'
+    this.options.type = 'notification';
+    this.widgetName = '#widget-notification#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The notificaiton widget will display a notification or play a sound when it receives a message.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'sound',
+        title: 'Play Sound',
+        type: 'check',
+        value: '1',
+        help: 'Play a sound when message is received.',
+        save: true
+      },
+      {
+        name: 'notification',
+        title: 'Display notification',
+        type: 'check',
+        value: '1',
+        help: 'Display a system notification when message is received.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+  }
+
+  onMessageArrived(payload) {
+    let display = this.element.querySelector('.display');
+    display.innerText = payload;
+  }
+}
 
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
@@ -810,6 +870,7 @@ IOTY_WIDGETS = [
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'hBar', widgetClass: IotyHBar},
+  { type: 'notification', widgetClass: IotyNotification},
 ];
 
 // Helper function to attach widget to element

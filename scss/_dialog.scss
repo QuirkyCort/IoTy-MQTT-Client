@@ -30,6 +30,13 @@
       width: 100%;
     }
   }
+
+  .check {
+    input[type=checkbox] {
+      width: 1em;
+      height: 1em;
+    }
+  }
 }
 
 .tooltip {
