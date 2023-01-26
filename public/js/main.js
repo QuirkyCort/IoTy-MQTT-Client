@@ -227,6 +227,7 @@ var main = new function() {
       item.el.classList.remove('newWidget');
       attachIotyWidget(item.el);
     }
+    self.gridStackChange(e, items);
   };
 
   this.gridStackChange = function(e, items) {
