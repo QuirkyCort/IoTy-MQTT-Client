@@ -35,6 +35,9 @@ let MSGS = {
   '#widget-hSlider#': {
     en: 'Slider',
   },
+  '#widget-text#': {
+    en: 'Text',
+  },
   '#widget-display#': {
     en: 'Display',
   },

@@ -442,6 +442,90 @@ class IotyHSlider extends IotyWidget {
   }
 }
 
+class IotyText extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="text">' +
+        '<div class="label">Text</div>' +
+        '<input type="text">' +
+        '<div class="send">Send</div>' +
+      '</div>';
+    this.options.type = 'text';
+    this.widgetName = '#widget-text#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The text widget will publish its value to the specified topic when send or enter is pressed.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Text',
+        help: 'Text above the slider.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let input = ele.querySelector('input');
+    let send = ele.querySelector('.send');
+    input.addEventListener('keyup', this.keyup.bind(this));
+    send.addEventListener('pointerdown', this.buttonDown.bind(this));
+    send.addEventListener('pointerup', this.buttonUp.bind(this));
+    send.addEventListener('pointerleave', this.buttonUp.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+  }
+
+  keyup(evt) {
+    if (main.mode == main.MODE_RUN) {
+      if (evt.key == 'Enter') {
+        this.send();
+      }
+    }
+  }
+
+  buttonDown() {
+    if (main.mode == main.MODE_RUN) {
+      this.state = 1;
+    }
+  }
+
+  buttonUp() {
+    if (main.mode == main.MODE_RUN && this.state) {
+      this.state = 0;
+      this.send();
+    }
+  }
+
+  send() {
+    let input = this.element.querySelector('input');
+
+    main.publish(this.getSetting('topic'), input.value);
+  }
+}
+
 class IotyDisplay extends IotyWidget {
   constructor() {
     super();
@@ -1022,6 +1106,7 @@ IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
   { type: 'hSlider', widgetClass: IotyHSlider},
+  { type: 'text', widgetClass: IotyText},
   { type: 'color', widgetClass: IotyColor},
   { type: 'color3', widgetClass: IotyColor3},
   { type: 'label', widgetClass: IotyLabel},

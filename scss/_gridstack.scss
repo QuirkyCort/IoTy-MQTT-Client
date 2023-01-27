@@ -278,3 +278,36 @@
     color: white;
   }
 }
+
+
+.grid-stack-item[ioty-type="text"] {
+  .text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% - 1em);
+    height: calc(100% - 1em);
+  }
+
+  .label {
+    align-self: start;
+  }
+
+  input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 100%;
+  }
+
+  .send {
+    background: #007bff;
+    color: white;
+    padding: 0.3em;
+    border-radius: 0.5em;
+    margin-top: 0.2em;
+    align-self: end;
+    cursor: pointer;
+    user-select: none;
+  }
+}

@@ -470,6 +470,29 @@ ul.menuDropDownRightAlign {
   background-color: #343a40;
   color: white; }
 
+.grid-stack-item[ioty-type="text"] .text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: calc(100% - 1em);
+  height: calc(100% - 1em); }
+.grid-stack-item[ioty-type="text"] .label {
+  align-self: start; }
+.grid-stack-item[ioty-type="text"] input[type="text"] {
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 100%; }
+.grid-stack-item[ioty-type="text"] .send {
+  background: #007bff;
+  color: white;
+  padding: 0.3em;
+  border-radius: 0.5em;
+  margin-top: 0.2em;
+  align-self: end;
+  cursor: pointer;
+  user-select: none; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file] {
