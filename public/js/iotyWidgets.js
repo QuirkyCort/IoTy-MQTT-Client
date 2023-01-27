@@ -157,7 +157,7 @@ class IotyLabel extends IotyWidget {
 class IotyButton extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="button"><div>Btn</div></div>'
+    this.content = '<div class="button"><div>Button</div></div>'
     this.options.type = 'button';
     this.widgetName = '#widget-button#';
     this.state = 0;
@@ -198,7 +198,7 @@ class IotyButton extends IotyWidget {
         name: 'label',
         title: 'Label',
         type: 'text',
-        value: 'Btn',
+        value: 'Button',
         help: 'Text on the button.',
         save: true
       },
@@ -571,7 +571,7 @@ class IotyDisplay extends IotyWidget {
 class IotyStatus extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="status"><div class="indicator"><div class="label"></div></div></div>'
+    this.content = '<div class="status"><div class="indicator"><div class="label">Status</div></div></div>'
     this.options.type = 'status';
     this.widgetName = '#widget-status#';
     this.state = 0;
@@ -1017,7 +1017,7 @@ class IotyColor3 extends IotyColor {
 class IotyNotification extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="notification"><div class="indicator"></div></div>'
+    this.content = '<div class="notification"><div class="indicator"><div class="label">Notif</div></div></div>'
     this.options.type = 'notification';
     this.widgetName = '#widget-notification#';
     this.state = 0;
@@ -1066,7 +1066,7 @@ class IotyNotification extends IotyWidget {
         name: 'label',
         title: 'Label',
         type: 'text',
-        value: 'Notification',
+        value: 'Notif',
         help: 'Text on the notification widget.',
         save: true
       },
@@ -1079,8 +1079,8 @@ class IotyNotification extends IotyWidget {
   }
 
   processSettings() {
-    let indicator = this.element.querySelector('.indicator');
-    indicator.innerText = this.getSetting('label');
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
 
     this.subscriptions.push(this.getSetting('topic'));
   }

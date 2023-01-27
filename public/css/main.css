@@ -309,7 +309,9 @@ ul.menuDropDownRightAlign {
   color: white;
   border-radius: 1em;
   font-weight: bold;
-  text-align: center; }
+  text-align: center;
+  padding: 0.2em;
+  box-sizing: border-box; }
 .grid-stack-item[ioty-type="button"] .button:active {
   border: solid 2px #66b0ff; }
 
@@ -427,7 +429,10 @@ ul.menuDropDownRightAlign {
   background: white;
   margin: auto;
   border-radius: 10px;
-  font-weight: bold; }
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
 .grid-stack-item[ioty-type="notification"] .indicator.flash {
   animation-name: flash;
   animation-duration: 0.5s;
