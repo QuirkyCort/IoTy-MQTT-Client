@@ -60,7 +60,15 @@ var genDialog = new function() {
     let $div = $('<div class="configuration"></div>');
     let $checkBox = $('<div class="check"><input type="checkbox"></div>');
     let $input = $checkBox.find('input');
+
+    if (setting.value == 'true') {
+      $input[0].checked = true;
+    }
     $input.val(setting.value);
+
+    $input[0].addEventListener('change', function(e) {
+      e.target.value = e.target.checked;
+    });
 
     $div.append(this.title(setting).ele);
     $div.append($checkBox);

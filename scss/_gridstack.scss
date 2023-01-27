@@ -194,3 +194,36 @@
     }
   }
 }
+
+.grid-stack-item[ioty-type="notification"] {
+  @keyframes flash {
+    0%   {background-color: #c82333;}
+    20%  {background-color: white;}
+    40%  {background-color: #c82333;}
+    60%  {background-color: white;}
+    80%  {background-color: #c82333;}
+  }
+
+  .notification {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .indicator {
+    width: 80%;
+    height: 80%;
+    background: white;
+    margin: auto;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+
+  .indicator.flash {
+    animation-name: flash;
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+  }
+}

@@ -18,6 +18,7 @@ var main = new function() {
   this.connected = false;
   this.linkMode = false;
   this.localOrRemoteDialog = null;
+  this.enableSave = true;
 
   this.connectSettings = [
     {
@@ -51,6 +52,7 @@ var main = new function() {
     self.$widgetToolbox = $('#widgetToolbox');
     self.$trash = $('#trash');
     self.$gridContainer = $('.gridContainer');
+    self.$bell = $('#bell');
 
     self.updateTextLanguage();
     self.initWidgetToolbox();
@@ -70,7 +72,34 @@ var main = new function() {
     if (self.linkMode) {
       self.activateLinkMode();
     }
+
+    // self.checkNotificationPermission();
   };
+
+  // this.checkNotificationPermission = function() {
+  //   if (!('Notification' in window)) {
+  //     acknowledgeDialog({
+  //       title: 'Warning',
+  //       message: 'This browser does not support notifications. The notification widget will not work.'
+  //     });
+  //   } else if (Notification.permission == 'denied') {
+  //     acknowledgeDialog({
+  //       title: 'Warning',
+  //       message: 'Notifications are blocked. Click on the lock pad icon in the address bar, reset notifications permissions, then reload the page.'
+  //     });
+  //   } else if (Notification.permission == 'default') {
+  //     self.requestNotificationPermission();
+  //   }
+  // };
+
+  // this.requestNotificationPermission = function() {
+  //   confirmDialog({
+  //     title: 'Notifications Permission',
+  //     message: 'This site requires your approval for the notification widget to work.'
+  //   }, function(){
+  //     Notification.requestPermission()
+  //   });
+  // };
 
   this.activateLinkMode = function() {
     self.mode = self.MODE_RUN;
@@ -576,6 +605,9 @@ var main = new function() {
   };
 
   this.saveAndPublishJSON = function() {
+    if (self.enableSave == false) {
+      return;
+    }
     self.saveJSON();
 
     if (self.connected) {
@@ -648,6 +680,8 @@ var main = new function() {
   };
 
   this.loadProject = function(json) {
+    self.enableSave = false;
+
     if (self.jsonSave == '' || self.linkMode) {
       self.loadJSON(json);
       self.jsonSave = json;
@@ -661,6 +695,8 @@ var main = new function() {
       }
       self.selectLocalOrRemoteSave(json);
     }
+
+    self.enableSave = true;
   };
 
   this.selectLocalOrRemoteSave = function(json) {

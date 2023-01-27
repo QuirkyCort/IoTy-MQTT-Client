@@ -251,7 +251,7 @@ class IotySwitch extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The switch widget will publish a message to the specified topic when the switched on, and another message when off.',
+        value: 'The switch widget will publish a message to the specified topic when switched on, and another message when off.',
         save: false
       },
       {
@@ -806,7 +806,7 @@ class IotyColor3 extends IotyColor {
 class IotyNotification extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="notification"><div></div></div>'
+    this.content = '<div class="notification"><div class="indicator"></div></div>'
     this.options.type = 'notification';
     this.widgetName = '#widget-notification#';
     this.state = 0;
@@ -831,7 +831,7 @@ class IotyNotification extends IotyWidget {
         name: 'sound',
         title: 'Play Sound',
         type: 'check',
-        value: '1',
+        value: 'true',
         help: 'Play a sound when message is received.',
         save: true
       },
@@ -839,8 +839,24 @@ class IotyNotification extends IotyWidget {
         name: 'notification',
         title: 'Display notification',
         type: 'check',
-        value: '1',
+        value: 'true',
         help: 'Display a system notification when message is received.',
+        save: true
+      },
+      {
+        name: 'flash',
+        title: 'Flash widget',
+        type: 'check',
+        value: 'true',
+        help: 'Flash a color when a message is received.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Notification',
+        help: 'Text on the notification widget.',
         save: true
       },
     ];
@@ -852,12 +868,26 @@ class IotyNotification extends IotyWidget {
   }
 
   processSettings() {
+    let indicator = this.element.querySelector('.indicator');
+    indicator.innerText = this.getSetting('label');
+
     this.subscriptions.push(this.getSetting('topic'));
   }
 
   onMessageArrived(payload) {
-    let display = this.element.querySelector('.display');
-    display.innerText = payload;
+    if (this.getSetting('notification') == 'true') {
+      toastMsg(payload);
+    }
+    if (this.getSetting('sound') == 'true') {
+      main.$bell[0].play();
+    }
+    if (this.getSetting('flash') == 'true') {
+      let indicator = this.element.querySelector('.indicator');
+      indicator.addEventListener('animationend', function(){
+        indicator.classList.remove('flash');
+      }, { once: true })
+      indicator.classList.add('flash');
+    }
   }
 }
 

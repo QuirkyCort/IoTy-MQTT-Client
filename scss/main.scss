@@ -198,6 +198,12 @@ ul.menuDropDownRightAlign {
 #linkQRCode {
   display: flex;
   justify-content: center;
+  height: 180px;
+  width: 180px;
+  margin: auto;
+  padding: 15px;
+  box-sizing: border-box;
+  background: white;
 }
 
 @import '_font.scss';
