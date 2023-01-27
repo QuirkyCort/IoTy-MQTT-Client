@@ -284,7 +284,6 @@
   }
 }
 
-
 .grid-stack-item[ioty-type="text"] {
   .text {
     display: flex;
@@ -314,5 +313,26 @@
     align-self: end;
     cursor: pointer;
     user-select: none;
+  }
+}
+
+.grid-stack-item[ioty-type="select"] {
+  .select {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% - 1em);
+    height: calc(100% - 1em);
+  }
+
+  .label {
+    align-self: start;
+  }
+
+  select {
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 100%;
   }
 }

@@ -79,6 +79,9 @@ class IotyWidget {
         } else if (setting.type == 'check') {
           obj = genDialog.check(setting);
           values.push(...obj.values);
+        } else if (setting.type == 'textarea') {
+          obj = genDialog.textarea(setting);
+          values.push(...obj.values);
         }
         $body.append(obj.ele);
       }
@@ -523,6 +526,92 @@ class IotyText extends IotyWidget {
     let input = this.element.querySelector('input');
 
     main.publish(this.getSetting('topic'), input.value);
+  }
+}
+
+class IotySelect extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="select">' +
+        '<div class="label">Select</div>' +
+        '<select><option selected value> -- </option><option value="1">Option A</option><option value="2">Option B</option></select>' +
+      '</div>';
+    this.options.type = 'select';
+    this.widgetName = '#widget-select#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The select widget will publish its selected value to the specified topic when changed.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'options',
+        title: 'Options',
+        type: 'textarea',
+        value: 'Option A, 1\nOption B, 2',
+        help: 'One option per line. Comma separated with description followed by value.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Select',
+        help: 'Text above the slider.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let select = ele.querySelector('select');
+    select.addEventListener('change', this.send.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    let select = this.element.querySelector('select');
+    let innerHTML = '<option selected value> -- </option>';
+
+    for (let option of this.getSetting('options').split('\n')) {
+      option = option.split(',');
+      let description = option[0];
+      let value = '0';
+      if (option.length > 1) {
+        value = option[1];
+      }
+      innerHTML += '<option value="' + value.trim() + '">' + description + '</option>';
+    }
+
+    select.innerHTML = innerHTML;
+  }
+
+  send() {
+    if (main.mode == main.MODE_RUN) {
+      let select = this.element.querySelector('select');
+      if (select.value == '') {
+        return;
+      }
+
+      main.publish(this.getSetting('topic'), select.value);
+    }
   }
 }
 
@@ -1107,6 +1196,7 @@ IOTY_WIDGETS = [
   { type: 'switch', widgetClass: IotySwitch},
   { type: 'hSlider', widgetClass: IotyHSlider},
   { type: 'text', widgetClass: IotyText},
+  { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
   { type: 'color3', widgetClass: IotyColor3},
   { type: 'label', widgetClass: IotyLabel},

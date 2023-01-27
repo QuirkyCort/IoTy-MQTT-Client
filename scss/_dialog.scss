@@ -1,7 +1,7 @@
 .configuration {
   padding: 0.5em 0em;
 
-  input[type=text], input[type=file] {
+  input[type=text], input[type=file], textarea {
     font-size: 100%;
     background: none;
     border: solid 1px white;
@@ -35,6 +35,13 @@
     input[type=checkbox] {
       width: 1em;
       height: 1em;
+    }
+  }
+
+  .textarea {
+    textarea {
+      font-family: unset;
+      width: 100%;
     }
   }
 }

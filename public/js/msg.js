@@ -38,6 +38,9 @@ let MSGS = {
   '#widget-text#': {
     en: 'Text',
   },
+  '#widget-select#': {
+    en: 'Select',
+  },
   '#widget-display#': {
     en: 'Display',
   },

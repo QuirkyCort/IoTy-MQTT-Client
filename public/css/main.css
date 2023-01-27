@@ -498,9 +498,23 @@ ul.menuDropDownRightAlign {
   cursor: pointer;
   user-select: none; }
 
+.grid-stack-item[ioty-type="select"] .select {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: calc(100% - 1em);
+  height: calc(100% - 1em); }
+.grid-stack-item[ioty-type="select"] .label {
+  align-self: start; }
+.grid-stack-item[ioty-type="select"] select {
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 100%; }
+
 .configuration {
   padding: 0.5em 0em; }
-  .configuration input[type=text], .configuration input[type=file] {
+  .configuration input[type=text], .configuration input[type=file], .configuration textarea {
     font-size: 100%;
     background: none;
     border: solid 1px white;
@@ -520,6 +534,9 @@ ul.menuDropDownRightAlign {
   .configuration .check input[type=checkbox] {
     width: 1em;
     height: 1em; }
+  .configuration .textarea textarea {
+    font-family: unset;
+    width: 100%; }
 
 .tooltip {
   position: relative;

@@ -56,6 +56,28 @@ var genDialog = new function() {
     return obj;
   };
 
+  this.textarea = function(setting) {
+    let $div = $('<div class="configuration"></div>');
+    let $textBox = $('<div class="textarea"><textarea rows="4"></div>');
+    let $input = $textBox.find('textarea');
+    $input.val(setting.value);
+
+    $div.append(this.title(setting).ele);
+    $div.append($textBox);
+
+    let obj = {
+      ele: $div,
+      values: [
+        {
+          name: setting.name,
+          ele: $input[0]
+        }
+      ]
+    }
+
+    return obj;
+  };
+
   this.check = function(setting) {
     let $div = $('<div class="configuration"></div>');
     let $checkBox = $('<div class="check"><input type="checkbox"></div>');
