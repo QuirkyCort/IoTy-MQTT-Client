@@ -445,7 +445,7 @@ class IotyHSlider extends IotyWidget {
 class IotyDisplay extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="display"><div></div></div>'
+    this.content = '<div class="display"></div>'
     this.options.type = 'display';
     this.widgetName = '#widget-display#';
     this.state = 0;
@@ -481,6 +481,69 @@ class IotyDisplay extends IotyWidget {
   onMessageArrived(payload) {
     let display = this.element.querySelector('.display');
     display.innerText = payload;
+  }
+}
+
+class IotyStatus extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="status"><div class="indicator"><div class="label"></div></div></div>'
+    this.options.type = 'status';
+    this.widgetName = '#widget-status#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The status widget will display a different color depending on the message it receives.',
+        save: false
+      },
+      {
+        name: 'colorCode',
+        title: 'Color Code',
+        type: 'label',
+        value: '0: Transparent, 1: Green, 2: Yellow, 3: Red, 4: Blue, 5: Gray, 6: Black',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Status',
+        help: 'Text on the status widget.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    this.subscriptions.push(this.getSetting('topic'));
+  }
+
+  onMessageArrived(payload) {
+    let indicator = this.element.querySelector('.indicator');
+    for (let i=0; i<7; i++) {
+      indicator.classList.remove('color' + i);
+    }
+    indicator.classList.add('color' + payload);
   }
 }
 
@@ -963,6 +1026,7 @@ IOTY_WIDGETS = [
   { type: 'color3', widgetClass: IotyColor3},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
+  { type: 'status', widgetClass: IotyStatus},
   { type: 'hBar', widgetClass: IotyHBar},
   { type: 'notification', widgetClass: IotyNotification},
 ];

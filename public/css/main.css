@@ -433,6 +433,43 @@ ul.menuDropDownRightAlign {
   animation-duration: 0.5s;
   animation-iteration-count: 1; }
 
+.grid-stack-item[ioty-type="status"] .status {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+.grid-stack-item[ioty-type="status"] .label {
+  font-weight: bold; }
+.grid-stack-item[ioty-type="status"] .indicator {
+  width: 80%;
+  height: 80%;
+  border: solid 1px gray;
+  margin: auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: black; }
+.grid-stack-item[ioty-type="status"] .indicator.color1 {
+  background-color: #28a745;
+  color: white; }
+.grid-stack-item[ioty-type="status"] .indicator.color2 {
+  background-color: #ffc107;
+  color: black; }
+.grid-stack-item[ioty-type="status"] .indicator.color3 {
+  background-color: #dc3545;
+  color: white; }
+.grid-stack-item[ioty-type="status"] .indicator.color4 {
+  background-color: #007bff;
+  color: white; }
+.grid-stack-item[ioty-type="status"] .indicator.color5 {
+  background-color: #6c757d;
+  color: white; }
+.grid-stack-item[ioty-type="status"] .indicator.color6 {
+  background-color: #343a40;
+  color: white; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file] {

@@ -38,6 +38,9 @@ let MSGS = {
   '#widget-display#': {
     en: 'Display',
   },
+  '#widget-status#': {
+    en: 'Status',
+  },
   '#widget-hBar#': {
     en: 'Bar Gauge',
   },
