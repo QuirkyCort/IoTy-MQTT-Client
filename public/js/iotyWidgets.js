@@ -365,10 +365,18 @@ class IotyHSlider extends IotyWidget {
         save: true
       },
       {
+        name: 'onChange',
+        title: 'Send value on change',
+        type: 'check',
+        value: 'false',
+        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
+        save: true
+      },
+      {
         name: 'label',
         title: 'Label',
         type: 'text',
-        value: 'Switch',
+        value: 'Slider',
         help: 'Text above the slider.',
         save: true
       },
@@ -379,7 +387,8 @@ class IotyHSlider extends IotyWidget {
   attach(ele) {
     super.attach(ele);
     let input = ele.querySelector('input');
-    input.addEventListener('input', this.change.bind(this));
+    input.addEventListener('input', this.input.bind(this));
+    input.addEventListener('change', this.change.bind(this));
   }
 
   processSettings() {
@@ -408,13 +417,27 @@ class IotyHSlider extends IotyWidget {
     value.innerText = val;
   }
 
+  send() {
+    let value = this.element.querySelector('.value');
+    let input = this.element.querySelector('input');
+
+    value.innerText = input.value;
+    main.publish(this.getSetting('topic'), input.value);
+  }
+
+  input(evt) {
+    if (main.mode == main.MODE_RUN) {
+      if (this.getSetting('onChange') == 'true') {
+        this.send();
+      }
+    }
+  }
+
   change(evt) {
     if (main.mode == main.MODE_RUN) {
-      let value = this.element.querySelector('.value');
-      let input = this.element.querySelector('input');
-
-      value.innerText = input.value;
-      main.publish(this.getSetting('topic'), input.value);
+      if (this.getSetting('onChange') == 'false') {
+        this.send();
+      }
     }
   }
 }
@@ -592,6 +615,14 @@ class IotyColor extends IotyWidget {
         save: true
       },
       {
+        name: 'onChange',
+        title: 'Send value on change',
+        type: 'check',
+        value: 'false',
+        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
+        save: true
+      },
+      {
         name: 'label',
         title: 'Label',
         type: 'text',
@@ -606,12 +637,14 @@ class IotyColor extends IotyWidget {
   attach(ele) {
     super.attach(ele);
     let input = ele.querySelector('input');
-    input.addEventListener('input', this.change.bind(this));
+    input.addEventListener('input', this.input.bind(this));
+    input.addEventListener('change', this.change.bind(this));
 
     let img = ele.querySelector('img');
     img.addEventListener('dragstart', function() { return false; })
     img.addEventListener('pointerdown', this.pointerdown.bind(this));
     img.addEventListener('pointermove', this.pointermove.bind(this));
+    img.addEventListener('pointerup', this.pointerup.bind(this));
     img.addEventListener('contextmenu', this.disableEvent);
   }
 
@@ -666,7 +699,9 @@ class IotyColor extends IotyWidget {
       this.hsv[1] = r;
 
       let rgb = this.hsv2rgb(this.hsv);
-      this.publish(rgb);
+      if (this.getSetting('onChange') == 'true') {
+        this.publish(rgb);
+      }
     }
   }
 
@@ -714,12 +749,33 @@ class IotyColor extends IotyWidget {
     }
   }
 
-  change(evt) {
-    if (main.mode == main.MODE_RUN) {
-      let input = this.element.querySelector('input');
-      this.hsv[2] = Number(input.value);
+  pointerup(evt) {
+    if (this.getSetting('onChange') == 'false') {
       let rgb = this.hsv2rgb(this.hsv);
       this.publish(rgb);
+    }
+  }
+
+  sendValue() {
+    let input = this.element.querySelector('input');
+    this.hsv[2] = Number(input.value);
+    let rgb = this.hsv2rgb(this.hsv);
+    this.publish(rgb);
+  }
+
+  input(evt) {
+    if (main.mode == main.MODE_RUN) {
+      if (this.getSetting('onChange') == 'true') {
+        this.sendValue();
+      }
+    }
+  }
+
+  change(evt) {
+    if (main.mode == main.MODE_RUN) {
+      if (this.getSetting('onChange') == 'false') {
+        this.sendValue();
+      }
     }
   }
 
@@ -782,6 +838,14 @@ class IotyColor3 extends IotyColor {
         type: 'text',
         value: '255',
         help: 'Maximum RGB value.',
+        save: true
+      },
+      {
+        name: 'onChange',
+        title: 'Send value on change',
+        type: 'check',
+        value: 'false',
+        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
         save: true
       },
       {
