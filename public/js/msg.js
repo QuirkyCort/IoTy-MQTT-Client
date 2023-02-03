@@ -53,11 +53,11 @@ let MSGS = {
   '#widget-color#': {
     en: 'Color',
   },
-  '#widget-color3#': {
-    en: 'Color3',
-  },
   '#widget-notification#': {
     en: 'Notification',
+  },
+  '#widget-joy#': {
+    en: 'Joystick',
   },
 };
 let MSGS_KEYS = Object.keys(MSGS);

@@ -335,6 +335,9 @@ class IotyHSlider extends IotyWidget {
     this.widgetName = '#widget-hSlider#';
     this.state = 0;
 
+    this.lastPayload = null;
+    this.payload = null;
+
     let settings = [
       {
         name: 'description',
@@ -385,6 +388,8 @@ class IotyHSlider extends IotyWidget {
       },
     ];
     this.settings.push(...settings);
+
+    this.timer = setInterval(this.publish.bind(this), 100);
   }
 
   attach(ele) {
@@ -420,27 +425,36 @@ class IotyHSlider extends IotyWidget {
     value.innerText = val;
   }
 
-  send() {
+  queuePublish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
     let value = this.element.querySelector('.value');
     let input = this.element.querySelector('input');
 
     value.innerText = input.value;
-    main.publish(this.getSetting('topic'), input.value);
+    this.payload = input.value;
   }
 
   input(evt) {
-    if (main.mode == main.MODE_RUN) {
-      if (this.getSetting('onChange') == 'true') {
-        this.send();
-      }
+    if (this.getSetting('onChange') == 'true') {
+      this.queuePublish();
     }
   }
 
   change(evt) {
-    if (main.mode == main.MODE_RUN) {
-      if (this.getSetting('onChange') == 'false') {
-        this.send();
-      }
+    if (this.getSetting('onChange') == 'false') {
+      this.queuePublish();
+    }
+  }
+
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.payload != this.lastPayload) {
+      main.publish(this.getSetting('topic'), this.payload);
+      this.lastPayload = this.payload;
     }
   }
 }
@@ -809,8 +823,10 @@ class IotyColor extends IotyWidget {
     super();
     this.content =
       '<div class="color">' +
-        '<img src="images/hsv.jpg" draggable="false">' +
-        '<div class="selector"></div>' +
+        '<div class="wrapper">' +
+          '<img src="images/hsv.jpg" draggable="false">' +
+          '<div class="selector"></div>' +
+        '</div>' +
         '<div class="label">Color</div>' +
         '<input type="range" value="255" max="255">' +
       '</div>';
@@ -818,20 +834,51 @@ class IotyColor extends IotyWidget {
     this.widgetName = '#widget-color#';
     this.hsv = [0,0,255];
 
+    this.payload1 = null;
+    this.lastPayload1 = null;
+    this.payload2 = null;
+    this.lastPayload2 = null;
+    this.payload3 = null;
+    this.lastPayload3 = null;
+
     let settings = [
       {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The color widget will publish its RGB values (comma separated float) to the specified topic when changed.',
+        value: 'The color widget will publish its RGB values to the specified topic(s) when changed.',
         save: false
       },
       {
-        name: 'topic',
-        title: 'MQTT Topic',
+        name: 'combine',
+        title: 'Send combined value',
+        type: 'check',
+        value: 'false',
+        help: 'Publish all the RGB values (comma separated float) to the first topic.',
+        save: true
+      },
+      {
+        name: 'topic1',
+        title: 'MQTT Topic (Red or All)',
         type: 'text',
         value: '',
-        help: 'Topic to publish to.',
+        help: 'In combined mode, this will contain the RGB values (comma separated). Else, it will contain the red value.',
+        save: true
+      },
+      {
+        name: 'topic2',
+        title: 'MQTT Topic (Green)',
+        type: 'text',
+        value: '',
+        help: 'If not in combined mode, this will contain the green value.',
+        save: true
+      },
+      {
+        name: 'topic3',
+        title: 'MQTT Topic (Blue)',
+        type: 'text',
+        value: '',
+        help: 'If not in combined mode, this will contain the blue value.',
         save: true
       },
       {
@@ -868,6 +915,8 @@ class IotyColor extends IotyWidget {
       },
     ];
     this.settings.push(...settings);
+
+    this.timer = setInterval(this.publish.bind(this), 100);
   }
 
   attach(ele) {
@@ -936,7 +985,7 @@ class IotyColor extends IotyWidget {
 
       let rgb = this.hsv2rgb(this.hsv);
       if (this.getSetting('onChange') == 'true') {
-        this.publish(rgb);
+        this.queuePublish(rgb);
       }
     }
   }
@@ -988,7 +1037,7 @@ class IotyColor extends IotyWidget {
   pointerup(evt) {
     if (this.getSetting('onChange') == 'false') {
       let rgb = this.hsv2rgb(this.hsv);
-      this.publish(rgb);
+      this.queuePublish(rgb);
     }
   }
 
@@ -996,111 +1045,51 @@ class IotyColor extends IotyWidget {
     let input = this.element.querySelector('input');
     this.hsv[2] = Number(input.value);
     let rgb = this.hsv2rgb(this.hsv);
-    this.publish(rgb);
+    this.queuePublish(rgb);
   }
 
   input(evt) {
-    if (main.mode == main.MODE_RUN) {
-      if (this.getSetting('onChange') == 'true') {
-        this.sendValue();
-      }
+    if (this.getSetting('onChange') == 'true') {
+      this.sendValue();
     }
   }
 
   change(evt) {
-    if (main.mode == main.MODE_RUN) {
-      if (this.getSetting('onChange') == 'false') {
-        this.sendValue();
-      }
+    if (this.getSetting('onChange') == 'false') {
+      this.sendValue();
     }
   }
 
-  publish(rgb) {
-    let payload = rgb[0] + ',' + rgb[1] + ',' + rgb[2];
-    main.publish(this.getSetting('topic'), payload);
+  queuePublish(rgb) {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.getSetting('combine') == 'true') {
+      this.payload1 = rgb[0] + ',' + rgb[1] + ',' + rgb[2];
+    } else {
+      this.payload1 = String(rgb[0]);
+      this.payload2 = String(rgb[1]);
+      this.payload3 = String(rgb[2]);
+    }
   }
 
-}
-
-class IotyColor3 extends IotyColor {
-  constructor() {
-    super();
-    this.options.type = 'color3';
-    this.widgetName = '#widget-color3#';
-
-    this.settings = [
-      {
-        name: 'description',
-        title: 'Description',
-        type: 'label',
-        value: 'The color 3 widget will publish its RGB values to separate topics when changed.',
-        save: false
-      },
-      {
-        name: 'topicR',
-        title: 'MQTT Topic for Red',
-        type: 'text',
-        value: '',
-        help: 'Topic to publish to.',
-        save: true
-      },
-      {
-        name: 'topicG',
-        title: 'MQTT Topic for Green',
-        type: 'text',
-        value: '',
-        help: 'Topic to publish to.',
-        save: true
-      },
-      {
-        name: 'topicB',
-        title: 'MQTT Topic for Blue',
-        type: 'text',
-        value: '',
-        help: 'Topic to publish to.',
-        save: true
-      },
-      {
-        name: 'min',
-        title: 'Minimum value',
-        type: 'text',
-        value: '0',
-        help: 'Minimum RGB value.',
-        save: true
-      },
-      {
-        name: 'max',
-        title: 'Maximum value',
-        type: 'text',
-        value: '255',
-        help: 'Maximum RGB value.',
-        save: true
-      },
-      {
-        name: 'onChange',
-        title: 'Send value on change',
-        type: 'check',
-        value: 'false',
-        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
-        save: true
-      },
-      {
-        name: 'label',
-        title: 'Label',
-        type: 'text',
-        value: 'Color',
-        help: 'Text above the widget.',
-        save: true
-      },
-    ];
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.payload1 != this.lastPayload1) {
+      main.publish(this.getSetting('topic1'), this.payload1);
+      this.lastPayload1 = this.payload1;
+    }
+    if (this.payload2 != this.lastPayload2) {
+      main.publish(this.getSetting('topic2'), this.payload2);
+      this.lastPayload2 = this.payload2;
+    }
+    if (this.payload3 != this.lastPayload3) {
+      main.publish(this.getSetting('topic3'), this.payload3);
+      this.lastPayload3 = this.payload3;
+    }
   }
-
-  publish(rgb) {
-    main.publish(this.getSetting('topicR'), String(rgb[0]));
-    main.publish(this.getSetting('topicG'), String(rgb[1]));
-    main.publish(this.getSetting('topicB'), String(rgb[2]));
-  }
-
 }
 
 class IotyNotification extends IotyWidget {
@@ -1191,6 +1180,208 @@ class IotyNotification extends IotyWidget {
   }
 }
 
+class IotyJoy extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="joy">' +
+        '<div class="wrapper">' +
+          '<img src="images/virtualJoystick.svg" draggable="false">' +
+          '<div class="selector"></div>' +
+        '</div>' +
+        '<div class="label">Joystick</div>' +
+      '</div>';
+    this.options.type = 'joy';
+    this.widgetName = '#widget-joy#';
+    this.x = 0;
+    this.y = 0;
+
+    this.lastPayload1 = null;
+    this.payload1 = null;
+    this.lastPayload2 = null;
+    this.payload2 = null;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The joystick widget will publish its position to the specified topic(s) when changed.',
+        save: false
+      },
+      {
+        name: 'combine',
+        title: 'Send combined value',
+        type: 'check',
+        value: 'false',
+        help: 'Publish both the x and y position (comma separated float) to the first topic.',
+        save: true
+      },
+      {
+        name: 'topic1',
+        title: 'MQTT Topic (x or both)',
+        type: 'text',
+        value: '',
+        help: 'In combined mode, this will contain both x and y position (comma separated). Else, it will contain the x value.',
+        save: true
+      },
+      {
+        name: 'topic2',
+        title: 'MQTT Topic (y)',
+        type: 'text',
+        value: '',
+        help: 'The y value will be published to this topic.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '100',
+        help: 'Maximum value.',
+        save: true
+      },
+      {
+        name: 'return',
+        title: 'Return to center',
+        type: 'check',
+        value: 'true',
+        help: 'Return the joystick to the center position when released.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Color',
+        help: 'Text above the widget.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+
+    this.timer = setInterval(this.publish.bind(this), 100);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+
+    let img = ele.querySelector('img');
+    img.addEventListener('dragstart', function() { return false; })
+    img.addEventListener('pointerdown', this.pointerdown.bind(this));
+    img.addEventListener('pointermove', this.pointermove.bind(this));
+    img.addEventListener('pointerup', this.pointerup.bind(this));
+    img.addEventListener('contextmenu', this.disableEvent);
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+  }
+
+  pointerdown(evt) {
+    if (main.mode == main.MODE_RUN) {
+      let selector = this.element.querySelector('.selector');
+
+      let x = 2 * (evt.offsetX / evt.target.offsetWidth - 0.5);
+      let y = 2 * (evt.offsetY / evt.target.offsetHeight - 0.5);
+
+      let r = Math.sqrt(x**2 + y**2);
+      r = Math.min(r, 1);
+      let theta = Math.atan2(y, x);
+      if (theta < 0) {
+        theta += 2 * Math.PI;
+      }
+
+      this.x = (r * Math.cos(theta) + 1) / 2;
+      this.y = (r * Math.sin(theta) + 1) / 2;
+      let imgLeft = evt.target.offsetLeft;
+      let imgTop = evt.target.offsetTop;
+      let imgWidth = evt.target.offsetWidth;
+      let imgHeight = evt.target.offsetHeight;
+
+      selector.style.left = (imgLeft + this.x * imgWidth - (selector.offsetWidth / 2)) + 'px';
+      selector.style.top = (imgTop + this.y * imgHeight - (selector.offsetHeight / 2)) + 'px';
+
+      this.queuePublish();
+    }
+  }
+
+  pointermove(evt) {
+    if (evt.buttons != 0) {
+      this.pointerdown(evt);
+    }
+  }
+
+  pointerup(evt) {
+    if (this.getSetting('return') == 'true') {
+      let selector = this.element.querySelector('.selector');
+
+      this.x = 0.5;
+      this.y = 0.5;
+
+      let imgLeft = evt.target.offsetLeft;
+      let imgTop = evt.target.offsetTop;
+      let imgWidth = evt.target.offsetWidth;
+      let imgHeight = evt.target.offsetHeight;
+
+      selector.style.left = (imgLeft + this.x * imgWidth - (selector.offsetWidth / 2)) + 'px';
+      selector.style.top = (imgTop + this.y * imgHeight - (selector.offsetHeight / 2)) + 'px';
+
+      this.queuePublish();
+    }
+  }
+
+  queuePublish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+
+    let min = Number(this.getSetting('min'));
+    let max = Number(this.getSetting('max'));
+
+    if (isNaN(min)) {
+      min = 0;
+    }
+    if (isNaN(max)) {
+      max = 100;
+    }
+    let range = max - min;
+
+    let x = this.x * range + min;
+    let y = this.y * range + min;
+
+    if (this.getSetting('combine') == 'true') {
+      this.payload1 = x + ',' + y;
+    } else {
+      this.payload1 = String(x);
+      this.payload2 = String(y);
+    }
+  }
+
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.payload1 != this.lastPayload1) {
+      main.publish(this.getSetting('topic1'), this.payload1);
+      this.lastPayload1 = this.payload1;
+    }
+    if (this.payload2 != this.lastPayload2) {
+      main.publish(this.getSetting('topic2'), this.payload2);
+      this.lastPayload2 = this.payload2;
+    }
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -1198,7 +1389,7 @@ IOTY_WIDGETS = [
   { type: 'text', widgetClass: IotyText},
   { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
-  { type: 'color3', widgetClass: IotyColor3},
+  { type: 'joy', widgetClass: IotyJoy},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},

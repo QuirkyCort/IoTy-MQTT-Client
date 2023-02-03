@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="200mm" height="200mm" version="1.1" viewBox="0 0 708.66 708.66" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(0 -343.7)" fill-rule="evenodd" shape-rendering="auto">
+  <path d="m353.53 343.7c-195.43 0.44257-353.82 159.43-353.53 354.86 0.29505 195.43 159.16 353.94 354.6 353.8 195.43-0.1475 354.06-158.9 354.06-354.33h-25.954c0 181.41-146.71 328.24-328.13 328.38-181.41 0.1369-328.35-146.47-328.62-327.88-0.27388-181.41 146.22-328.46 327.63-328.87 181.41-0.41083 328.57 145.97 329.12 327.38l25.954-0.0791c-0.5901-195.43-159.7-353.7-355.13-353.26z" color="#000000" color-rendering="auto" image-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-transform:none;white-space:normal"/>
+  <g transform="matrix(1.0382 0 0 1.0382 -13.524 -28.84)">
+   <path d="m427.85 520.07h-147.03l73.517-79.834 36.758 39.917z" color="#000000" color-rendering="auto" image-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal"/>
+   <path d="m427.85 880.23h-147.03l73.517 79.834 36.758-39.917z" color="#000000" color-rendering="auto" image-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal"/>
+  </g>
+  <g transform="matrix(0 1.0382 -1.0382 0 1081.2 330.18)">
+   <path d="m427.85 520.07h-147.03l73.517-79.834 36.758 39.917z" color="#000000" color-rendering="auto" image-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal"/>
+   <path d="m427.85 880.23h-147.03l73.517 79.834 36.758-39.917z" color="#000000" color-rendering="auto" image-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal"/>
+  </g>
+ </g>
+</svg>
