@@ -182,6 +182,14 @@ class IotyButton extends IotyWidget {
         save: true
       },
       {
+        name: 'pressOnly',
+        title: 'Send on press only',
+        type: 'check',
+        value: 'false',
+        help: 'Only publish when the button is pressed, and not when it is released.',
+        save: true
+      },
+      {
         name: 'press',
         title: 'Send on Press',
         type: 'text',
@@ -232,7 +240,9 @@ class IotyButton extends IotyWidget {
   buttonUp() {
     if (main.mode == main.MODE_RUN && this.state) {
       this.state = 0;
-      main.publish(this.getSetting('topic'), this.getSetting('release'));
+      if (this.getSetting('pressOnly') == 'false') {
+        main.publish(this.getSetting('topic'), this.getSetting('release'));
+      }
     }
   }
 }
