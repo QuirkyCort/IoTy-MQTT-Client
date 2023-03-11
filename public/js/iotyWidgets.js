@@ -185,7 +185,7 @@ class IotyButton extends IotyWidget {
         name: 'press',
         title: 'Send on Press',
         type: 'text',
-        value: '1',
+        value: 'press',
         help: 'This value will be published when the button is pressed.',
         save: true
       },
@@ -193,7 +193,7 @@ class IotyButton extends IotyWidget {
         name: 'release',
         title: 'Send on Release',
         type: 'text',
-        value: '0',
+        value: 'release',
         help: 'This value will be published when the button is released.',
         save: true
       },
@@ -269,7 +269,7 @@ class IotySwitch extends IotyWidget {
         name: 'on',
         title: 'Send on On',
         type: 'text',
-        value: '1',
+        value: 'on',
         help: 'This value will be published when the switch is on.',
         save: true
       },
@@ -277,7 +277,7 @@ class IotySwitch extends IotyWidget {
         name: 'off',
         title: 'Send on Off',
         type: 'text',
-        value: '0',
+        value: 'off',
         help: 'This value will be published when the switch is off.',
         save: true
       },
@@ -575,7 +575,7 @@ class IotySelect extends IotyWidget {
         name: 'options',
         title: 'Options',
         type: 'textarea',
-        value: 'Option A, 1\nOption B, 2',
+        value: 'Option A, A\nOption B, B',
         help: 'One option per line. Comma separated with description followed by value.',
         save: true
       },
@@ -584,7 +584,7 @@ class IotySelect extends IotyWidget {
         title: 'Label',
         type: 'text',
         value: 'Select',
-        help: 'Text above the slider.',
+        help: 'Text above the selector.',
         save: true
       },
     ];
