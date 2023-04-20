@@ -551,6 +551,10 @@ ul.menuDropDownRightAlign {
     top: 0;
     left: 0; }
 
+.grid-stack-item[ioty-type="video"] video {
+  height: 100%;
+  width: 100%; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

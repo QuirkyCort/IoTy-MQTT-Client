@@ -59,6 +59,9 @@ let MSGS = {
   '#widget-joy#': {
     en: 'Joystick',
   },
+  '#widget-video#': {
+    en: 'Video',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

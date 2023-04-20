@@ -1392,6 +1392,164 @@ class IotyJoy extends IotyWidget {
   }
 }
 
+class IotyVideo extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="video">' +
+        '<video></video>' +
+      '</div>';
+    this.options.type = 'video';
+    this.widgetName = '#widget-video#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The video widget will display a video. You can start, stop, or change the video via MQTT.',
+        save: false
+      },
+      {
+        name: 'url',
+        title: 'Video URL',
+        type: 'text',
+        value: '',
+        help: 'Pre-set the video URL. If blank, you will need to set the URL through MQTT.',
+        save: true
+      },
+      {
+        name: 'loop',
+        title: 'Loop',
+        type: 'check',
+        value: 'false',
+        help: 'Restart the video when it finish playing.',
+        save: true
+      },
+      {
+        name: 'autoplay',
+        title: 'Autoplay',
+        type: 'check',
+        value: 'false',
+        help: 'Play the video as soon as it is loaded. The video must be muted for this to work.',
+        save: true
+      },
+      {
+        name: 'mute',
+        title: 'Mute',
+        type: 'check',
+        value: 'false',
+        help: 'Turn off the audio output.',
+        save: true
+      },
+      {
+        name: 'urlTopic',
+        title: 'URL Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to change the video URL.',
+        save: true
+      },
+      {
+        name: 'controlTopic',
+        title: 'Control Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to control playback. Use keywords: "play", "pause", "toggle", or "restart".',
+        save: true
+      },
+      {
+        name: 'seekTopic',
+        title: 'Seek Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to set the playback position in seconds.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let video = this.element.querySelector('video');
+
+    if (this.getSetting('url').trim() != '') {
+      video.src = this.getSetting('url');
+    } else {
+      video.src = '';
+    }
+
+    if (this.getSetting('loop') == 'true') {
+      video.loop = true;
+    } else {
+      video.loop = false;
+    }
+
+    if (this.getSetting('autoplay') == 'true') {
+      video.autoplay = true;
+    } else {
+      video.autoplay = false;
+    }
+
+    if (this.getSetting('mute') == 'true') {
+      video.muted = true;
+    } else {
+      video.muted = false;
+    }
+
+    self.topics = {};
+    for (let topic of ['urlTopic', 'controlTopic', 'seekTopic']) {
+      self.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+  }
+
+  onMessageArrived(payload, topic) {
+    if (topic == self.topics['urlTopic']) {
+      this.onMessageArrivedUrl(payload);
+    } else if (topic == self.topics['controlTopic']) {
+      this.onMessageArrivedControl(payload);
+    } else if (topic == self.topics['seekTopic']) {
+      this.onMessageArrivedSeek(payload);
+    }
+  }
+
+  onMessageArrivedUrl(payload) {
+    let video = this.element.querySelector('video');
+    video.src = payload;
+  }
+
+  onMessageArrivedControl(payload) {
+    let video = this.element.querySelector('video');
+    if (payload == 'play') {
+      video.play();
+    } else if (payload == 'pause') {
+      video.pause();
+    } else if (payload == 'toggle') {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    } else if (payload == 'restart') {
+      video.currentTime = 0;
+      video.play();
+    }
+  }
+
+  onMessageArrivedSeek(payload) {
+    let video = this.element.querySelector('video');
+    video.currentTime = parseFloat(payload);
+  }
+}
+
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -1405,6 +1563,7 @@ IOTY_WIDGETS = [
   { type: 'status', widgetClass: IotyStatus},
   { type: 'hBar', widgetClass: IotyHBar},
   { type: 'notification', widgetClass: IotyNotification},
+  { type: 'video', widgetClass: IotyVideo},
 ];
 
 // Helper function to attach widget to element

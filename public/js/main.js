@@ -475,7 +475,7 @@ var main = new function() {
     let elements = self.grid.getGridItems();
     for (let element of elements) {
       if (element.widget.subscriptions.includes(message.destinationName)) {
-        element.widget.onMessageArrived(message.payloadString);
+        element.widget.onMessageArrived(message.payloadString, message.destinationName);
       }
     }
   };
