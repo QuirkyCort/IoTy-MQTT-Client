@@ -62,6 +62,9 @@ let MSGS = {
   '#widget-video#': {
     en: 'Video',
   },
+  '#widget-audio#': {
+    en: 'Audio',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

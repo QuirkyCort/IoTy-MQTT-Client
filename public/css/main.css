@@ -555,6 +555,49 @@ ul.menuDropDownRightAlign {
   height: 100%;
   width: 100%; }
 
+.grid-stack-item[ioty-type="audio"] .audio {
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+@keyframes bounce {
+  10% {
+    transform: scaleY(0.3);
+    /* start by scaling to 30% */ }
+  30% {
+    transform: scaleY(1);
+    /* scale up to 100% */ }
+  60% {
+    transform: scaleY(0.5);
+    /* scale down to 50% */ }
+  80% {
+    transform: scaleY(0.75);
+    /* scale up to 75% */ }
+  100% {
+    transform: scaleY(0.6);
+    /* scale down to 60% */ } }
+.grid-stack-item[ioty-type="audio"] .musicAnimation {
+  pointer-events: none;
+  position: absolute;
+  display: flex;
+  justify-content: space-between;
+  width: 3em;
+  height: 3em; }
+  .grid-stack-item[ioty-type="audio"] .musicAnimation span {
+    width: 0.5em;
+    height: 100%;
+    background-color: orange;
+    border-radius: 0.25em;
+    animation: bounce 2.2s ease infinite alternate;
+    content: ''; }
+    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(2) {
+      animation-delay: -2.2s;
+      /* Start at the end of animation */ }
+    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(3) {
+      animation-delay: -3.7s;
+      /* Start mid-way of return of animation */ }
+.grid-stack-item[ioty-type="audio"] .musicAnimation.paused > span {
+  animation-play-state: paused; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

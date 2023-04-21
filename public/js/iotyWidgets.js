@@ -1549,6 +1549,148 @@ class IotyVideo extends IotyWidget {
   }
 }
 
+class IotyAudio extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="audio">' +
+        '<audio></audio>' +
+        '<div class="musicAnimation paused">' +
+          '<span></span><span></span><span></span>' +
+        '</div>'+
+      '</div>';
+    this.options.type = 'audio';
+    this.widgetName = '#widget-audio#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The audio widget will play an audio track. You can start, stop, or change the audio file via MQTT.',
+        save: false
+      },
+      {
+        name: 'url',
+        title: 'Audio URL',
+        type: 'text',
+        value: '',
+        help: 'Pre-set the audio URL. If blank, you will need to set the URL through MQTT.',
+        save: true
+      },
+      {
+        name: 'loop',
+        title: 'Loop',
+        type: 'check',
+        value: 'false',
+        help: 'Restart the audio when it finish playing.',
+        save: true
+      },
+      {
+        name: 'urlTopic',
+        title: 'URL Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to change the audio URL.',
+        save: true
+      },
+      {
+        name: 'controlTopic',
+        title: 'Control Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to control playback. Use keywords: "play", "pause", "toggle", or "restart".',
+        save: true
+      },
+      {
+        name: 'seekTopic',
+        title: 'Seek Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to set the playback position in seconds.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let audio = this.element.querySelector('audio');
+    let musicAnimation = this.element.querySelector('.musicAnimation');
+
+    function stopAnimation() {
+      musicAnimation.classList.add('paused');
+    }
+    function playAnimation() {
+      musicAnimation.classList.remove('paused');
+    }
+
+    audio.addEventListener('play', playAnimation);
+    audio.addEventListener('pause', stopAnimation);
+
+    if (this.getSetting('url').trim() != '') {
+      audio.src = this.getSetting('url');
+    } else {
+      audio.src = '';
+    }
+
+    if (this.getSetting('loop') == 'true') {
+      audio.loop = true;
+    } else {
+      audio.loop = false;
+    }
+
+    self.topics = {};
+    for (let topic of ['urlTopic', 'controlTopic', 'seekTopic']) {
+      self.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+  }
+
+  onMessageArrived(payload, topic) {
+    if (topic == self.topics['urlTopic']) {
+      this.onMessageArrivedUrl(payload);
+    } else if (topic == self.topics['controlTopic']) {
+      this.onMessageArrivedControl(payload);
+    } else if (topic == self.topics['seekTopic']) {
+      this.onMessageArrivedSeek(payload);
+    }
+  }
+
+  onMessageArrivedUrl(payload) {
+    let audio = this.element.querySelector('audio');
+    audio.src = payload;
+  }
+
+  onMessageArrivedControl(payload) {
+    let audio = this.element.querySelector('audio');
+    if (payload == 'play') {
+      audio.play();
+    } else if (payload == 'pause') {
+      audio.pause();
+    } else if (payload == 'toggle') {
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    } else if (payload == 'restart') {
+      audio.currentTime = 0;
+      audio.play();
+    }
+  }
+
+  onMessageArrivedSeek(payload) {
+    let audio = this.element.querySelector('audio');
+    audio.currentTime = parseFloat(payload);
+  }
+}
 
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
@@ -1564,6 +1706,7 @@ IOTY_WIDGETS = [
   { type: 'hBar', widgetClass: IotyHBar},
   { type: 'notification', widgetClass: IotyNotification},
   { type: 'video', widgetClass: IotyVideo},
+  { type: 'audio', widgetClass: IotyAudio},
 ];
 
 // Helper function to attach widget to element
