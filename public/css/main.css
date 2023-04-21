@@ -598,6 +598,18 @@ ul.menuDropDownRightAlign {
 .grid-stack-item[ioty-type="audio"] .musicAnimation.paused > span {
   animation-play-state: paused; }
 
+.grid-stack-item[ioty-type="image"] .image {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+.grid-stack-item[ioty-type="image"] img {
+  max-height: 100%;
+  max-width: 100%; }
+.grid-stack-item[ioty-type="image"] img.hide {
+  display: none; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

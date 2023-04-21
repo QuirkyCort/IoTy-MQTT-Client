@@ -455,3 +455,22 @@
     animation-play-state: paused;
   }
 }
+
+.grid-stack-item[ioty-type="image"] {
+  .image {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  img {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  img.hide {
+    display: none;
+  }
+}

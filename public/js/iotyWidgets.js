@@ -1692,6 +1692,101 @@ class IotyAudio extends IotyWidget {
   }
 }
 
+class IotyImage extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="image">' +
+        '<img>' +
+      '</div>';
+    this.options.type = 'image';
+    this.widgetName = '#widget-image#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The image widget will play an image. You can hide, show, or change the image file via MQTT.',
+        save: false
+      },
+      {
+        name: 'url',
+        title: 'Image URL',
+        type: 'text',
+        value: '',
+        help: 'Pre-set the image URL. If blank, you will need to set the URL through MQTT.',
+        save: true
+      },
+      {
+        name: 'urlTopic',
+        title: 'URL Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to change the image URL.',
+        save: true
+      },
+      {
+        name: 'controlTopic',
+        title: 'Control Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to control the image display. Use keywords: "show", "hide", or "toggle".',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let image = this.element.querySelector('img');
+
+    if (this.getSetting('url').trim() != '') {
+      image.src = this.getSetting('url');
+    } else {
+      image.src = '';
+    }
+
+    self.topics = {};
+    for (let topic of ['urlTopic', 'controlTopic']) {
+      self.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+  }
+
+  onMessageArrived(payload, topic) {
+    if (topic == self.topics['urlTopic']) {
+      this.onMessageArrivedUrl(payload);
+    } else if (topic == self.topics['controlTopic']) {
+      this.onMessageArrivedControl(payload);
+    } else if (topic == self.topics['seekTopic']) {
+      this.onMessageArrivedSeek(payload);
+    }
+  }
+
+  onMessageArrivedUrl(payload) {
+    let image = this.element.querySelector('img');
+    image.src = payload;
+  }
+
+  onMessageArrivedControl(payload) {
+    let image = this.element.querySelector('img');
+    if (payload == 'show') {
+      image.classList.remove('hide');
+    } else if (payload == 'hide') {
+      image.classList.add('hide');
+    } else if (payload == 'toggle') {
+      image.classList.toggle('hide');
+    }
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -1707,6 +1802,7 @@ IOTY_WIDGETS = [
   { type: 'notification', widgetClass: IotyNotification},
   { type: 'video', widgetClass: IotyVideo},
   { type: 'audio', widgetClass: IotyAudio},
+  { type: 'image', widgetClass: IotyImage},
 ];
 
 // Helper function to attach widget to element
