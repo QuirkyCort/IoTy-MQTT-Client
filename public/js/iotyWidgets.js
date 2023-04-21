@@ -694,7 +694,7 @@ class IotyStatus extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The status widget will display a different color depending on the message it receives.',
+        value: 'The status widget will display a different color depending on the message it receives. You can send a color code, a RGB hex code, or a comma separated RGB value.',
         save: false
       },
       {
@@ -702,6 +702,20 @@ class IotyStatus extends IotyWidget {
         title: 'Color Code',
         type: 'label',
         value: '0: Transparent, 1: Green, 2: Yellow, 3: Red, 4: Blue, 5: Gray, 6: Black',
+        save: false
+      },
+      {
+        name: 'rgbHex',
+        title: 'RGB Hex Code',
+        type: 'label',
+        value: 'Eg. "#FF000" (Red), "#00FF00" (Green), "#FFFFFF" (White)',
+        save: false
+      },
+      {
+        name: 'rgbValue',
+        title: 'RGB Value',
+        type: 'label',
+        value: 'Eg. "255,0,0" (Red), "0,255,0" (Green), "255,255,255" (White)',
         save: false
       },
       {
@@ -740,7 +754,15 @@ class IotyStatus extends IotyWidget {
     for (let i=0; i<7; i++) {
       indicator.classList.remove('color' + i);
     }
-    indicator.classList.add('color' + payload);
+
+    if (payload.includes('#')) {
+      indicator.style.backgroundColor = payload;
+    } else if (payload.includes(',')) {
+      indicator.style.backgroundColor = 'rgb(' + payload + ')';
+    } else {
+      indicator.style.backgroundColor = '';
+      indicator.classList.add('color' + payload);
+    }
   }
 }
 
