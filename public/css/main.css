@@ -559,7 +559,8 @@ ul.menuDropDownRightAlign {
   justify-content: center; }
 .grid-stack-item[ioty-type="video"] video {
   height: 100%;
-  width: 100%; }
+  width: 100%;
+  pointer-events: none; }
 
 .grid-stack-item[ioty-type="audio"] .audio {
   display: flex;
