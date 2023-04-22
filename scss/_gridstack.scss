@@ -1,3 +1,12 @@
+main {
+  -webkit-tap-highlight-color: #0000;
+  user-select: none;
+}
+
+.newWidget > .grid-stack-item-content > div {
+  pointer-events: none;
+}
+
 .grid-stack {
   background: white;
 }
