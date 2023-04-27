@@ -624,6 +624,16 @@ main {
 .grid-stack-item[ioty-type="image"] img.hide {
   display: none; }
 
+.grid-stack-item[ioty-type="map"] .map {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+  .grid-stack-item[ioty-type="map"] .map .mapEmbed {
+    height: calc(100% - 1em);
+    width: calc(100% - 1em); }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

@@ -76,6 +76,8 @@ class IotyWidget {
           values.push(...obj.values);
         } else if (setting.type == 'label') {
           obj = genDialog.label(setting);
+        } else if (setting.type == 'html') {
+          obj = genDialog.html(setting);
         } else if (setting.type == 'check') {
           obj = genDialog.check(setting);
           values.push(...obj.values);
@@ -1523,9 +1525,9 @@ class IotyVideo extends IotyWidget {
       video.muted = false;
     }
 
-    self.topics = {};
+    this.topics = {};
     for (let topic of ['urlTopic', 'controlTopic', 'seekTopic']) {
-      self.topics[topic] = this.getSetting(topic);
+      this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
       }
@@ -1533,11 +1535,11 @@ class IotyVideo extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    if (topic == self.topics['urlTopic']) {
+    if (topic == this.topics['urlTopic']) {
       this.onMessageArrivedUrl(payload);
-    } else if (topic == self.topics['controlTopic']) {
+    } else if (topic == this.topics['controlTopic']) {
       this.onMessageArrivedControl(payload);
-    } else if (topic == self.topics['seekTopic']) {
+    } else if (topic == this.topics['seekTopic']) {
       this.onMessageArrivedSeek(payload);
     }
   }
@@ -1666,9 +1668,9 @@ class IotyAudio extends IotyWidget {
       audio.loop = false;
     }
 
-    self.topics = {};
+    this.topics = {};
     for (let topic of ['urlTopic', 'controlTopic', 'seekTopic']) {
-      self.topics[topic] = this.getSetting(topic);
+      this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
       }
@@ -1676,11 +1678,11 @@ class IotyAudio extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    if (topic == self.topics['urlTopic']) {
+    if (topic == this.topics['urlTopic']) {
       this.onMessageArrivedUrl(payload);
-    } else if (topic == self.topics['controlTopic']) {
+    } else if (topic == this.topics['controlTopic']) {
       this.onMessageArrivedControl(payload);
-    } else if (topic == self.topics['seekTopic']) {
+    } else if (topic == this.topics['seekTopic']) {
       this.onMessageArrivedSeek(payload);
     }
   }
@@ -1773,9 +1775,9 @@ class IotyImage extends IotyWidget {
       image.src = '';
     }
 
-    self.topics = {};
+    this.topics = {};
     for (let topic of ['urlTopic', 'controlTopic']) {
-      self.topics[topic] = this.getSetting(topic);
+      this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
       }
@@ -1783,12 +1785,10 @@ class IotyImage extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    if (topic == self.topics['urlTopic']) {
+    if (topic == this.topics['urlTopic']) {
       this.onMessageArrivedUrl(payload);
-    } else if (topic == self.topics['controlTopic']) {
+    } else if (topic == this.topics['controlTopic']) {
       this.onMessageArrivedControl(payload);
-    } else if (topic == self.topics['seekTopic']) {
-      this.onMessageArrivedSeek(payload);
     }
   }
 
@@ -1809,6 +1809,240 @@ class IotyImage extends IotyWidget {
   }
 }
 
+class IotyMap extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="map">' +
+        '<div class="mapEmbed"></div>' +
+      '</div>';
+    this.options.type = 'map';
+    this.widgetName = '#widget-map#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The map widget will display a map. You can place markers or control your map display via MQTT.',
+        save: false
+      },
+      {
+        name: 'markerFormat',
+        title: 'Marker Topic Format',
+        type: 'html',
+        value:
+          '<p>' +
+            'To place markers, publish to the marker topic in this format.' +
+          '</p>' +
+          '<ul>' +
+            '<li>id, lat, long, label (Optional, Single Character), info (Optional, HTML)</li>' +
+          '</ul>' +
+          '<p>' +
+            'Any value can be used as "id". If a marker with the id already exists, it will be modified instead, else a new marker will be created. ' +
+            '"info" will only be displayed when the marker is clicked.' +
+          '</p>',
+        save: false
+      },
+      {
+        name: 'controlFormat',
+        title: 'Control Topic Format',
+        type: 'html',
+        value:
+          '<p>' +
+            'To control map, publish to the control topic in one of the following formats.' +
+          '</p>' +
+          '<ul>' +
+            '<li>"panTo", lat, long</li>' +
+            '<li>"zoom", zoomLevel</li>' +
+            '<li>"fitMarkers"</li>' +
+            '<li>"clearMarkers"</li>' +
+          '</ul>',
+        save: false
+      },
+      {
+        name: 'markerTopic',
+        title: 'Map Marker Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to set or change markers.',
+        save: true
+      },
+      {
+        name: 'centerOnMarker',
+        title: 'Center marker on add / change',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the map will center on the marker that was added or change.',
+        save: true
+      },
+      {
+        name: 'fitMarkers',
+        title: 'Fit all markers on add / change',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the map will fit all markers on screen. This over-rides the center marker setting.',
+        save: true
+      },
+      {
+        name: 'controlTopic',
+        title: 'Control Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to control the map display.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+
+    this.markers = {};
+
+    let mapEmbed = this.element.querySelector('.mapEmbed');
+    async function initMap() {
+      const { Map } = await google.maps.importLibrary("maps");
+      this.map = new Map(mapEmbed, {
+        center: { lat: 1.4378324, lng: 103.8071664 },
+        zoom: 14,
+      });
+    }
+
+    (initMap.bind(this))();
+  }
+
+  processSettings() {
+    this.topics = {};
+    for (let topic of ['markerTopic', 'controlTopic']) {
+      this.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+  }
+
+  onMessageArrived(payload, topic) {
+    if (topic == this.topics['markerTopic']) {
+      this.onMessageArrivedMarker(payload);
+    } else if (topic == this.topics['controlTopic']) {
+      this.onMessageArrivedControl(payload);
+    }
+  }
+
+  modifyMarker(markerStrings) {
+    let position = {
+      lat: parseFloat(markerStrings[1]),
+      lng: parseFloat(markerStrings[2])
+    };
+    let marker = this.markers[markerStrings[0]];
+    marker.setPosition(position);
+
+    if (markerStrings.length > 3) {
+      marker.setLabel(markerStrings[3]);
+    }
+
+    if (markerStrings.length > 4) {
+      let infoWindow = new google.maps.InfoWindow({
+        content: markerStrings.slice(4).join(',')
+      });
+      google.maps.event.clearListeners(marker, 'click');
+      marker.addListener('click', function() {
+        infoWindow.open({
+          anchor: marker,
+          map: this.map
+        })
+      });
+    }
+
+    if (this.getSetting('fitMarkers') == 'true') {
+      this.fitMarkers();
+    } else if (this.getSetting('centerOnMarker') == 'true') {
+      this.map.panTo(position);
+    }
+  }
+
+  newMarker(markerStrings) {
+    let position = {
+      lat: parseFloat(markerStrings[1]),
+      lng: parseFloat(markerStrings[2])
+    };
+    let markerConfig = {
+      position: position,
+      map: this.map,
+    };
+
+    if (markerStrings.length > 3) {
+      markerConfig.label = markerStrings[3];
+    }
+
+    let marker = new google.maps.Marker(markerConfig);
+
+    if (markerStrings.length > 4) {
+      let infoWindow = new google.maps.InfoWindow({
+        content: markerStrings.slice(4).join(',')
+      });
+      marker.addListener('click', function() {
+        infoWindow.open({
+          anchor: marker,
+          map: this.map
+        })
+      });
+    }
+
+    this.markers[markerStrings[0]] = marker;
+
+    if (this.getSetting('fitMarkers') == 'true') {
+      this.fitMarkers();
+    } else if (this.getSetting('centerOnMarker') == 'true') {
+      this.map.panTo(position);
+    }
+  }
+
+  onMessageArrivedMarker(payload) {
+    let markerStrings = payload.split(',');
+
+    if (markerStrings[0] in this.markers) {
+      this.modifyMarker(markerStrings);
+    } else {
+      this.newMarker(markerStrings);
+    }
+  }
+
+  fitMarkers() {
+    let bounds = new google.maps.LatLngBounds();
+    for (let id in this.markers) {
+      bounds.extend(this.markers[id].position);
+    }
+    this.map.fitBounds(bounds);
+  }
+
+  clearMarkers() {
+    for (let id in this.markers) {
+      this.markers[id].setMap(null);
+    }
+    this.markers = {};
+  }
+
+  onMessageArrivedControl(payload) {
+    let controlStrings = payload.split(',');
+
+    if (controlStrings[0] == 'panTo') {
+      this.map.panTo({
+        lat: parseFloat(controlStrings[1]),
+        lng: parseFloat(controlStrings[2])
+      });
+    } else if (controlStrings[0] == 'zoom') {
+      this.map.setZoom(parseFloat(controlStrings[1]));
+    } else if (controlStrings[0] == 'fitMarkers') {
+      this.fitMarkers();
+    } else if (controlStrings[0] == 'clearMarkers') {
+      this.clearMarkers();
+    }
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -1825,6 +2059,7 @@ IOTY_WIDGETS = [
   { type: 'video', widgetClass: IotyVideo},
   { type: 'audio', widgetClass: IotyAudio},
   { type: 'image', widgetClass: IotyImage},
+  { type: 'map', widgetClass: IotyMap},
 ];
 
 // Helper function to attach widget to element

@@ -68,6 +68,9 @@ let MSGS = {
   '#widget-image#': {
     en: 'Image',
   },
+  '#widget-map#': {
+    en: 'Map',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 
