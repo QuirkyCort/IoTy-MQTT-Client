@@ -1907,6 +1907,7 @@ class IotyMap extends IotyWidget {
       this.map = new Map(mapEmbed, {
         center: { lat: 1.4378324, lng: 103.8071664 },
         zoom: 14,
+        streetViewControl: false
       });
     }
 
