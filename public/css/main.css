@@ -633,6 +633,19 @@ main {
   .grid-stack-item[ioty-type="map"] .map .mapEmbed {
     height: calc(100% - 1em);
     width: calc(100% - 1em); }
+.grid-stack-item[ioty-type="map"] .percentBox {
+  position: absolute;
+  left: 30px;
+  background: white;
+  height: 100%;
+  width: 6px;
+  border: solid 1px black; }
+.grid-stack-item[ioty-type="map"] .percentBar {
+  position: absolute;
+  background: #EA4335;
+  width: 100%;
+  height: 0%;
+  bottom: 0; }
 
 .configuration {
   padding: 0.5em 0em; }

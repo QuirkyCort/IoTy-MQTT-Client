@@ -1836,7 +1836,8 @@ class IotyMap extends IotyWidget {
             'To place markers, publish to the marker topic in this format.' +
           '</p>' +
           '<ul>' +
-            '<li>id, lat, long, label (Optional, Single Character), info (Optional, HTML)</li>' +
+            '<li>id, lat, long, label, info (HTML), color (Hex), percentage (0-100), percent bar color (Hex)</li>' +
+            '<li>Only the first 3 (id, lat, long) are mandatory; the other fields are optional</li>' +
           '</ul>' +
           '<p>' +
             'Any value can be used as "id". If a marker with the id already exists, it will be modified instead, else a new marker will be created. ' +
@@ -1904,10 +1905,15 @@ class IotyMap extends IotyWidget {
     let mapEmbed = this.element.querySelector('.mapEmbed');
     async function initMap() {
       const { Map } = await google.maps.importLibrary("maps");
+      const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+      this.AdvancedMarkerElement = AdvancedMarkerElement;
+      this.PinElement = PinElement;
+
       this.map = new Map(mapEmbed, {
         center: { lat: 1.4378324, lng: 103.8071664 },
         zoom: 14,
-        streetViewControl: false
+        streetViewControl: false,
+        mapId: 'e8dbaec8731e8c86'
       });
     }
 
@@ -1938,23 +1944,51 @@ class IotyMap extends IotyWidget {
       lng: parseFloat(markerStrings[2])
     };
     let marker = this.markers[markerStrings[0]];
-    marker.setPosition(position);
+    marker.position = position;
+
+    let pinConfig = {};
+    if (markerStrings.length > 3) {
+      pinConfig.glyph = markerStrings[3];
+    }
+    if (markerStrings.length > 5) {
+      pinConfig.background = markerStrings[5];
+    }
+
+    let pin = new this.PinElement(pinConfig);
+    if (markerStrings.length > 6) {
+      let percentBox = document.createElement('div');
+      let percentBar = document.createElement('div');
+      percentBox.classList.add('percentBox');
+      percentBar.classList.add('percentBar');
+      percentBar.style.height = markerStrings[6] + '%';
+      if (markerStrings[5].trim()) {
+        percentBar.style.background = markerStrings[5];
+      }
+      if (markerStrings.length > 7) {
+        percentBar.style.background = markerStrings[7];
+      }
+
+      percentBox.append(percentBar);
+      pin.element.append(percentBox);
+    }
 
     if (markerStrings.length > 3) {
-      marker.setLabel(markerStrings[3]);
+      marker.content = pin.element;
     }
 
     if (markerStrings.length > 4) {
-      let infoWindow = new google.maps.InfoWindow({
-        content: markerStrings.slice(4).join(',')
-      });
       google.maps.event.clearListeners(marker, 'click');
-      marker.addListener('click', function() {
-        infoWindow.open({
-          anchor: marker,
-          map: this.map
-        })
-      });
+      if (markerStrings[4].trim()) {
+        let infoWindow = new google.maps.InfoWindow({
+          content: markerStrings[4]
+        });
+        marker.addListener('click', function() {
+          infoWindow.open({
+            anchor: marker,
+            map: this.map
+          })
+        });
+      }
     }
 
     if (this.getSetting('fitMarkers') == 'true') {
@@ -1974,22 +2008,47 @@ class IotyMap extends IotyWidget {
       map: this.map,
     };
 
+    let pinConfig = {};
     if (markerStrings.length > 3) {
-      markerConfig.label = markerStrings[3];
+      pinConfig.glyph = markerStrings[3];
     }
+    if (markerStrings.length > 5 && markerStrings[5].trim()) {
+      pinConfig.background = markerStrings[5];
+    }
+    let pin = new this.PinElement(pinConfig);
 
-    let marker = new google.maps.Marker(markerConfig);
+    if (markerStrings.length > 6) {
+      let percentBox = document.createElement('div');
+      let percentBar = document.createElement('div');
+      percentBox.classList.add('percentBox');
+      percentBar.classList.add('percentBar');
+      percentBar.style.height = markerStrings[6] + '%';
+      if (markerStrings[5].trim()) {
+        percentBar.style.background = markerStrings[5];
+      }
+      if (markerStrings.length > 7) {
+        percentBar.style.background = markerStrings[7];
+      }
+
+      percentBox.append(percentBar);
+      pin.element.append(percentBox);
+    }
+    markerConfig.content = pin.element;
+
+    let marker = new this.AdvancedMarkerElement(markerConfig);
 
     if (markerStrings.length > 4) {
-      let infoWindow = new google.maps.InfoWindow({
-        content: markerStrings.slice(4).join(',')
-      });
-      marker.addListener('click', function() {
-        infoWindow.open({
-          anchor: marker,
-          map: this.map
-        })
-      });
+      if (markerStrings[4].trim()) {
+        let infoWindow = new google.maps.InfoWindow({
+          content: markerStrings[4]
+        });
+        marker.addListener('click', function() {
+          infoWindow.open({
+            anchor: marker,
+            map: this.map
+          })
+        });
+      }
     }
 
     this.markers[markerStrings[0]] = marker;
