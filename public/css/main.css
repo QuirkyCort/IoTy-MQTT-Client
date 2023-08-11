@@ -569,7 +569,7 @@ main {
   width: 100%;
   pointer-events: none; }
 
-.grid-stack-item[ioty-type="audio"] .audio {
+.grid-stack-item[ioty-type="audio"] .audio, .grid-stack-item[ioty-type="audio"] .tts, .grid-stack-item[ioty-type="tts"] .audio, .grid-stack-item[ioty-type="tts"] .tts {
   display: flex;
   justify-content: center;
   align-items: center; }
@@ -589,28 +589,31 @@ main {
   100% {
     transform: scaleY(0.6);
     /* scale down to 60% */ } }
-.grid-stack-item[ioty-type="audio"] .musicAnimation {
+.grid-stack-item[ioty-type="audio"] .musicAnimation, .grid-stack-item[ioty-type="tts"] .musicAnimation {
   pointer-events: none;
   position: absolute;
   display: flex;
   justify-content: space-between;
   width: 3em;
   height: 3em; }
-  .grid-stack-item[ioty-type="audio"] .musicAnimation span {
+  .grid-stack-item[ioty-type="audio"] .musicAnimation span, .grid-stack-item[ioty-type="tts"] .musicAnimation span {
     width: 0.5em;
     height: 100%;
     background-color: orange;
     border-radius: 0.25em;
     animation: bounce 2.2s ease infinite alternate;
     content: ''; }
-    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(2) {
+    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(2), .grid-stack-item[ioty-type="tts"] .musicAnimation span:nth-of-type(2) {
       animation-delay: -2.2s;
       /* Start at the end of animation */ }
-    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(3) {
+    .grid-stack-item[ioty-type="audio"] .musicAnimation span:nth-of-type(3), .grid-stack-item[ioty-type="tts"] .musicAnimation span:nth-of-type(3) {
       animation-delay: -3.7s;
       /* Start mid-way of return of animation */ }
-.grid-stack-item[ioty-type="audio"] .musicAnimation.paused > span {
+.grid-stack-item[ioty-type="audio"] .musicAnimation.paused > span, .grid-stack-item[ioty-type="tts"] .musicAnimation.paused > span {
   animation-play-state: paused; }
+
+.grid-stack-item[ioty-type="tts"] .musicAnimation span {
+  background-color: orangered; }
 
 .grid-stack-item[ioty-type="image"] .image {
   height: 100%;

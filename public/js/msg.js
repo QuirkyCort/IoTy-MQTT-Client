@@ -71,6 +71,9 @@ let MSGS = {
   '#widget-map#': {
     en: 'Map',
   },
+  '#widget-tts#': {
+    en: 'TTS',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

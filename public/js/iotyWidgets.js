@@ -1295,7 +1295,7 @@ class IotyJoy extends IotyWidget {
         name: 'label',
         title: 'Label',
         type: 'text',
-        value: 'Color',
+        value: 'Joystick',
         help: 'Text above the widget.',
         save: true
       },
@@ -2103,6 +2103,66 @@ class IotyMap extends IotyWidget {
   }
 }
 
+class IotyTTS extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="tts">' +
+        '<div class="musicAnimation paused">' +
+          '<span></span><span></span><span></span>' +
+        '</div>'+
+      '</div>';
+    this.options.type = 'tts';
+    this.widgetName = '#widget-tts#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The Text-To-Speech (TTS) widget will read out the message that it receives.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'Topic',
+        type: 'text',
+        value: '',
+        help: 'Text published to this topic will be read out.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+  }
+
+  onMessageArrived(payload) {
+    let musicAnimation = this.element.querySelector('.musicAnimation');
+
+    function stopAnimation() {
+      musicAnimation.classList.add('paused');
+    }
+    function playAnimation() {
+      musicAnimation.classList.remove('paused');
+    }
+
+    const synth = window.speechSynthesis;
+    const utterThis = new SpeechSynthesisUtterance(payload);
+
+    utterThis.addEventListener('start', playAnimation);
+    utterThis.addEventListener('end', stopAnimation);
+
+    synth.speak(utterThis);
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -2120,6 +2180,7 @@ IOTY_WIDGETS = [
   { type: 'audio', widgetClass: IotyAudio},
   { type: 'image', widgetClass: IotyImage},
   { type: 'map', widgetClass: IotyMap},
+  { type: 'tts', widgetClass: IotyTTS},
 ];
 
 // Helper function to attach widget to element

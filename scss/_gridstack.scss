@@ -414,8 +414,8 @@ main {
   }
 }
 
-.grid-stack-item[ioty-type="audio"] {
-  .audio {
+.grid-stack-item[ioty-type="audio"], .grid-stack-item[ioty-type="tts"] {
+  .audio, .tts {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -471,6 +471,14 @@ main {
 
   .musicAnimation.paused > span {
     animation-play-state: paused;
+  }
+}
+
+.grid-stack-item[ioty-type="tts"] {
+  .musicAnimation {
+    span {
+      background-color: orangered;
+    }
   }
 }
 
