@@ -74,6 +74,9 @@ let MSGS = {
   '#widget-tts#': {
     en: 'TTS',
   },
+  '#widget-speech#': {
+    en: 'Speech',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

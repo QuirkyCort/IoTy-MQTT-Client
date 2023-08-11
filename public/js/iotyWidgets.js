@@ -2163,6 +2163,147 @@ class IotyTTS extends IotyWidget {
   }
 }
 
+class IotySpeech extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="speech"><div class="wrapper"><div class="glow"></div><img src="images/mic.png"><img class="top" src="images/mic.png"></div></div>'
+    this.options.type = 'speech';
+    this.widgetName = '#widget-speech#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The speech widget will listen for your spoken commands, and publish it to the specified topic.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'useGrammar',
+        title: 'Use Word List',
+        type: 'check',
+        value: 'false',
+        help: 'If true, only the words in the below list will be accepted. If false, all words will be accepted.',
+        save: true
+      },
+      {
+        name: 'grammar',
+        title: 'Word List',
+        type: 'text',
+        value: 'on, off',
+        help: 'Only the words in this list will be accepted. Separate each word with a comma.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let button = ele.querySelector('.wrapper');
+    button.addEventListener('pointerdown', this.buttonDown.bind(this));
+  }
+
+  processSettings() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+    const glow = this.element.querySelector('.glow');
+
+    if (typeof SpeechRecognition == 'undefined') {
+      toastMsg('Speech recognition not supported on this browser');
+      return;
+    }
+
+    this.recognition = new SpeechRecognition();
+
+    this.words = this.getSetting('grammar').split(',').map(word => word.trim());
+
+    if (SpeechGrammarList && this.getSetting('useGrammar') == 'true') {
+      let speechRecognitionList = new SpeechGrammarList();
+      let grammar = '#JSGF V1.0; grammar colors; public <color> = ' + this.words.join('|') + ' ;'
+      speechRecognitionList.addFromString(grammar, 1);
+      this.recognition.grammars = speechRecognitionList;
+    }
+    this.recognition.continuous = false;
+    this.recognition.lang = 'en-US';
+    this.recognition.interimResults = false;
+    this.recognition.maxAlternatives = 1;
+
+    this.recognition.onresult = this.recognitionOnResult.bind(this);
+    this.recognition.onstart = function() {
+      this.running = true;
+    }.bind(this);
+    this.recognition.onspeechend = function() {
+      this.running = false;
+      glow.classList.remove('animate');
+      this.recognition.stop();
+    }.bind(this);
+    this.recognition.onnomatch = function(event) {
+      this.running = false;
+      glow.classList.remove('animate');
+      console.log('No match');
+    }.bind(this);
+    this.recognition.onerror = function(event) {
+      this.running = false;
+      glow.classList.remove('animate');
+      console.log('Error occurred in recognition: ' + event.error);
+    }.bind(this);
+  }
+
+  recognitionOnResult(event) {
+    let result = event.results[0][0].transcript;
+    let img = this.element.querySelector('img.top');
+
+    if (this.getSetting('useGrammar') == 'true') {
+      if (this.words.includes(result)) {
+        main.publish(this.getSetting('topic'), result);
+        img.src = 'images/success.png';
+      } else {
+        img.src = 'images/failure.png';
+      }
+    } else {
+      if (result) {
+        main.publish(this.getSetting('topic'), result);
+        img.src = 'images/success.png';
+      } else {
+        img.src = 'images/failure.png';
+      }
+    }
+    (this.timeoutRevertToMic.bind(this))();
+  }
+
+  timeoutRevertToMic() {
+    let img = this.element.querySelector('img.top');
+
+    setTimeout(function(){
+      img.src = 'images/mic.png';
+    }, 1000);
+  }
+
+  buttonDown() {
+    if (main.mode == main.MODE_RUN) {
+      if (this.recognition) {
+        if (this.running) {
+          this.recognition.abort();
+        } else {
+          let glow = this.element.querySelector('.glow');
+          glow.classList.add('animate');
+          this.recognition.start();
+        }
+      }
+    }
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -2181,6 +2322,7 @@ IOTY_WIDGETS = [
   { type: 'image', widgetClass: IotyImage},
   { type: 'map', widgetClass: IotyMap},
   { type: 'tts', widgetClass: IotyTTS},
+  { type: 'speech', widgetClass: IotySpeech},
 ];
 
 // Helper function to attach widget to element
