@@ -77,6 +77,9 @@ let MSGS = {
   '#widget-speech#': {
     en: 'Speech',
   },
+  '#widget-chart#': {
+    en: 'Chart',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 
