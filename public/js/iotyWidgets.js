@@ -2304,6 +2304,263 @@ class IotySpeech extends IotyWidget {
   }
 }
 
+class IotyChart extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="chart"><canvas></canvas></div>'
+    this.options.type = 'chart';
+    this.widgetName = '#widget-chart#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The chart widget retrieve data from the specified topic and display it in a chart.',
+        save: false
+      },
+      {
+        name: 'timeAxis',
+        title: 'Time on x-axis',
+        type: 'check',
+        value: 'true',
+        help: 'If true, the x value is interpreted as a time, else it will be displayed as it is.',
+        save: true
+      },
+      {
+        name: 'topic1',
+        title: 'MQTT Topic 1',
+        type: 'text',
+        value: '',
+        help: 'Topic name with "_dev" append will be used for publishing commands to the device, and topic name with "_app" appended will be subscribed to and used for receiving data.',
+        save: true
+      },
+      {
+        name: 'label1',
+        title: 'Label 1',
+        type: 'text',
+        value: '',
+        help: 'Chart label for data.',
+        save: true
+      },
+      {
+        name: 'topic2',
+        title: 'MQTT Topic 2',
+        type: 'text',
+        value: '',
+        help: 'Topic name with "_dev" append will be used for publishing commands to the device, and topic name with "_app" appended will be subscribed to and used for receiving data.',
+        save: true
+      },
+      {
+        name: 'label2',
+        title: 'Label 2',
+        type: 'text',
+        value: '',
+        help: 'Chart label for data.',
+        save: true
+      },
+      {
+        name: 'topic3',
+        title: 'MQTT Topic 3',
+        type: 'text',
+        value: '',
+        help: 'Topic name with "_dev" append will be used for publishing commands to the device, and topic name with "_app" appended will be subscribed to and used for receiving data.',
+        save: true
+      },
+      {
+        name: 'label3',
+        title: 'Label 3',
+        type: 'text',
+        value: '',
+        help: 'Chart label for data.',
+        save: true
+      },
+      {
+        name: 'topic4',
+        title: 'MQTT Topic 4',
+        type: 'text',
+        value: '',
+        help: 'Topic name with "_dev" append will be used for publishing commands to the device, and topic name with "_app" appended will be subscribed to and used for receiving data.',
+        save: true
+      },
+      {
+        name: 'label4',
+        title: 'Label 4',
+        type: 'text',
+        value: '',
+        help: 'Chart label for data.',
+        save: true
+      },
+      {
+        name: 'topic5',
+        title: 'MQTT Topic 5',
+        type: 'text',
+        value: '',
+        help: 'Topic name with "_dev" append will be used for publishing commands to the device, and topic name with "_app" appended will be subscribed to and used for receiving data.',
+        save: true
+      },
+      {
+        name: 'label5',
+        title: 'Label 5',
+        type: 'text',
+        value: '',
+        help: 'Chart label for data.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    let chartDiv = this.element.querySelector('.chart');
+    chartDiv.replaceChildren();
+    chartDiv.innerHTML = '<canvas></canvas>';
+    let canvas = this.element.querySelector('canvas');
+
+    let options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      showLine: true,
+      scales: {
+        x: {}
+      },
+      plugins: {
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: {
+              enabled: true,
+            },
+            pinch: {
+              enabled: true
+            },
+            mode: 'x',
+          }
+        }
+      }
+    };
+
+    if (this.getSetting('timeAxis') == 'true') {
+      options.scales.x.type = 'time';
+    }
+
+    this.chart = new Chart(canvas, {
+      type: 'scatter',
+      data: {
+        datasets: [],
+      },
+      options: options
+    });
+
+    this.datasets = [];
+    for (let i=1; i<6; i++) {
+      let topic = this.getSetting('topic' + i);
+      topic = topic.trim();
+      if (topic != '') {
+        this.initTopic(topic, i);
+      }
+    }
+
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null;
+    }
+    this.timer = setInterval(this.requestAll.bind(this), 3000);
+  }
+
+  onMessageArrived(payload, topic) {
+    topic = topic.slice(0,-4)
+    let topicIndex = this.getTopicIndex(topic);
+
+    if (topicIndex != -1) {
+      let data = JSON.parse(payload);
+      if (data.type == 'data_all') {
+        this.replaceAll(topicIndex, data.data);
+      } else if (data.type == 'data_some') {
+        this.addSome(topicIndex, data.data);
+      }
+    }
+  }
+
+  replaceAll(topicIndex, data) {
+    let dataset = this.datasets[topicIndex];
+    if (dataset.sendInitialRequest) {
+      dataset.sendInitialRequest = false;
+    }
+
+    dataset.data.length = 0;
+    this.addSome(topicIndex, data);
+  }
+
+  addSome(topicIndex, data) {
+    let dataset = this.datasets[topicIndex];
+
+    for (let d of data) {
+      let x = d[0];
+      if (this.getSetting('timeAxis') == 'true') {
+        x *= 1000;
+      }
+      dataset.data.push({
+        x: x,
+        y: d[1]
+      });
+    }
+
+    this.chart.update();
+  }
+
+  getTopicIndex(topic) {
+    for (let i=0; i<this.datasets.length; i++) {
+      if (this.datasets[i].topic == topic) {
+        return i
+      }
+    }
+    return -1;
+  }
+
+  initTopic(topic, i) {
+    let label = this.getSetting('label' + i);
+
+    let data = []
+    this.chart.data.datasets.push({
+      label: label,
+      data: data
+    });
+
+    this.datasets.push({
+      topic: topic,
+      sendInitialRequest: true,
+      data: data
+    });
+
+    this.subscriptions.push(topic + '_app');
+  }
+
+  requestAll(topic) {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+
+    let req = {
+      type: 'request_all'
+    };
+    req = JSON.stringify(req);
+    for (let dataset of this.datasets) {
+      if (dataset.sendInitialRequest) {
+        main.publish(dataset.topic + '_dev', req);
+      }
+    }
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -2323,6 +2580,7 @@ IOTY_WIDGETS = [
   { type: 'map', widgetClass: IotyMap},
   { type: 'tts', widgetClass: IotyTTS},
   { type: 'speech', widgetClass: IotySpeech},
+  { type: 'chart', widgetClass: IotyChart},
 ];
 
 // Helper function to attach widget to element

@@ -690,6 +690,10 @@ main {
       background: red;
       animation: glow 1.5s ease infinite alternate; }
 
+.grid-stack-item[ioty-type="chart"] .chart {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em); }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {
