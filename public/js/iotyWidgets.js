@@ -836,16 +836,17 @@ class IotyHBar extends IotyWidget {
 
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
-
-    let progress = this.element.querySelector('progress');
-
   }
 
   onMessageArrived(payload) {
     let value = this.element.querySelector('.value');
     value.innerText = payload;
 
-    let pos = (Number(payload) - Number(this.getSetting('min'))) / Number(this.getSetting('max'));
+    let minValue = Number(this.getSetting('min'));
+    let maxValue = Number(this.getSetting('max'));
+    let range = maxValue - minValue
+
+    let pos = (Number(payload) - minValue) / range;
 
     let progress = this.element.querySelector('progress');
     progress.value = pos;
@@ -2561,6 +2562,123 @@ class IotyChart extends IotyWidget {
   }
 }
 
+class IotyGauge extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="gauge">' +
+        '<canvas width="1000" height="1000"></canvas>' +
+        '<div class="text">' +
+          '<div class="value"></div>' +
+          '<div class="label"></div>' +
+        '</div>' +
+      '</div>';
+    this.options.type = 'gauge';
+    this.widgetName = '#widget-gauge#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The gauge widget will display whatever values it receives.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Gauge',
+        help: 'Text inside the gauge.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    this.drawGauge(0);
+  }
+
+  drawGauge(value) {
+    function toRad(deg) {
+      return deg / 180 * Math.PI;
+    }
+
+    if (value < 0) {
+      value = 0;
+    } else if (value > 1) {
+      value = 1;
+    }
+
+    let canvas = this.element.querySelector('canvas');
+    let ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.arc(500, 500, 450, toRad(-220), toRad(40));
+    ctx.arc(500, 500, 380, toRad(40), toRad(-220), true);
+    ctx.arc(500, 500, 450, toRad(-220), toRad(-220));
+    ctx.fillStyle = 'lightgray';
+    ctx.fill();
+
+    let targetAngle = value * 260 + -220;
+    ctx.beginPath();
+    ctx.arc(500, 500, 450, toRad(-220), toRad(targetAngle));
+    ctx.arc(500, 500, 380, toRad(targetAngle), toRad(-220), true);
+    ctx.arc(500, 500, 450, toRad(-220), toRad(-220));
+    ctx.fillStyle = '#007bff';
+    ctx.fill();
+  }
+
+  onMessageArrived(payload) {
+    let value = this.element.querySelector('.value');
+    value.innerText = payload;
+
+    let minValue = Number(this.getSetting('min'));
+    let maxValue = Number(this.getSetting('max'));
+    let range = maxValue - minValue
+
+    let pos = (Number(payload) - minValue) / range;
+    this.drawGauge(pos);
+  }
+}
+
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -2573,6 +2691,7 @@ IOTY_WIDGETS = [
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},
   { type: 'hBar', widgetClass: IotyHBar},
+  { type: 'gauge', widgetClass: IotyGauge},
   { type: 'notification', widgetClass: IotyNotification},
   { type: 'video', widgetClass: IotyVideo},
   { type: 'audio', widgetClass: IotyAudio},

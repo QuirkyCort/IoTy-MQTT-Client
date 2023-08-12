@@ -597,3 +597,29 @@ main {
     width: calc(100% - 1em);
   }
 }
+
+.grid-stack-item[ioty-type="gauge"] {
+  .gauge {
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+
+    canvas {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+    }
+
+    .text {
+      position: absolute;
+
+      .value {
+        text-align: center;
+        font-size: 200%;
+      }
+    }
+  }
+}

@@ -694,6 +694,23 @@ main {
   height: calc(100% - 1em);
   width: calc(100% - 1em); }
 
+.grid-stack-item[ioty-type="gauge"] .gauge {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center; }
+  .grid-stack-item[ioty-type="gauge"] .gauge canvas {
+    height: 100%;
+    width: 100%;
+    object-fit: contain; }
+  .grid-stack-item[ioty-type="gauge"] .gauge .text {
+    position: absolute; }
+    .grid-stack-item[ioty-type="gauge"] .gauge .text .value {
+      text-align: center;
+      font-size: 200%; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

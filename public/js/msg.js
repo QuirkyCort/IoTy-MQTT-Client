@@ -80,6 +80,9 @@ let MSGS = {
   '#widget-chart#': {
     en: 'Chart',
   },
+  '#widget-gauge#': {
+    en: 'Gauge',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 
