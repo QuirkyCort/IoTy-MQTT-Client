@@ -33,7 +33,10 @@ let MSGS = {
     en: 'Switch',
   },
   '#widget-hSlider#': {
-    en: 'Slider',
+    en: 'Horizontal Slider',
+  },
+  '#widget-vSlider#': {
+    en: 'Vertical Slider',
   },
   '#widget-text#': {
     en: 'Text',
@@ -48,7 +51,10 @@ let MSGS = {
     en: 'Status',
   },
   '#widget-hBar#': {
-    en: 'Bar Gauge',
+    en: 'H-Bar Gauge',
+  },
+  '#widget-vBar#': {
+    en: 'V-Bar Gauge',
   },
   '#widget-color#': {
     en: 'Color',

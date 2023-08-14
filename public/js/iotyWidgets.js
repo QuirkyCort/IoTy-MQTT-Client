@@ -518,6 +518,145 @@ class IotyHSlider extends IotyWidget {
   }
 }
 
+class IotyVSlider extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="vSlider">' +
+        '<div class="row1">' +
+          '<div class="label">Slider</div>' +
+          '<div class="value">0</div>' +
+        '</div>' +
+        '<input type="range" value="0" orient="vertical">' +
+      '</div>';
+    this.options.type = 'vSlider';
+    this.widgetName = '#widget-vSlider#';
+    this.state = 0;
+
+    this.lastPayload = null;
+    this.payload = null;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The slider widget will publish its value to the specified topic when changed.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value for the slider.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum value for the slider.',
+        save: true
+      },
+      {
+        name: 'onChange',
+        title: 'Send value on change',
+        type: 'check',
+        value: 'false',
+        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Slider',
+        help: 'Text above the slider.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+
+    this.timer = setInterval(this.publish.bind(this), 100);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+    let input = ele.querySelector('input');
+    input.addEventListener('input', this.input.bind(this));
+    input.addEventListener('change', this.change.bind(this));
+  }
+
+  processSettings() {
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+
+    let input = this.element.querySelector('input');
+    let min = Number(this.getSetting('min'));
+    let max = Number(this.getSetting('max'));
+
+    if (isNaN(min)) {
+      min = 0;
+    }
+    if (isNaN(max)) {
+      max = 255;
+    }
+
+    let val = input.value;
+    val = Math.max(min, Math.min(max, val));
+
+    input.min = min;
+    input.max = max;
+    input.value = val;
+
+    let value = this.element.querySelector('.value');
+    value.innerText = val;
+  }
+
+  queuePublish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    let value = this.element.querySelector('.value');
+    let input = this.element.querySelector('input');
+
+    value.innerText = input.value;
+    this.payload = input.value;
+  }
+
+  input(evt) {
+    if (this.getSetting('onChange') == 'true') {
+      this.queuePublish();
+    }
+  }
+
+  change(evt) {
+    if (this.getSetting('onChange') == 'false') {
+      this.queuePublish();
+    }
+  }
+
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.payload != this.lastPayload) {
+      main.publish(this.getSetting('topic'), this.payload);
+      this.lastPayload = this.payload;
+    }
+  }
+}
+
 class IotyText extends IotyWidget {
   constructor() {
     super();
@@ -824,7 +963,7 @@ class IotyHBar extends IotyWidget {
           '<div class="label">Gauge</div>' +
           '<div class="value">0</div>' +
         '</div>' +
-        '<progress value="0.5" max="1"></progress>' +
+        '<div class="progress"><div></div></div>' +
       '</div>';
     this.options.type = 'hBar';
     this.widgetName = '#widget-hBar#';
@@ -895,8 +1034,93 @@ class IotyHBar extends IotyWidget {
 
     let pos = (Number(payload) - minValue) / range;
 
-    let progress = this.element.querySelector('progress');
-    progress.value = pos;
+    let progress = this.element.querySelector('.progress > div');
+    progress.style.width = (pos * 100) + '%';
+  }
+}
+
+class IotyVBar extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="vBar">' +
+        '<div class="row1">' +
+          '<div class="label">Gauge</div>' +
+          '<div class="value">0</div>' +
+        '</div>' +
+        '<div class="progress"><div></div></div>' +
+      '</div>';
+    this.options.type = 'vBar';
+    this.widgetName = '#widget-vBar#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The bar gauge widget will display whatever values it receives.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'min',
+        title: 'Minimum value',
+        type: 'text',
+        value: '0',
+        help: 'Minimum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'max',
+        title: 'Maximum value',
+        type: 'text',
+        value: '255',
+        help: 'Maximum value for the gauge.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Gauge',
+        help: 'Text above the gauge.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    this.subscriptions.push(this.getSetting('topic'));
+
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+  }
+
+  onMessageArrived(payload) {
+    let value = this.element.querySelector('.value');
+    value.innerText = payload;
+
+    let minValue = Number(this.getSetting('min'));
+    let maxValue = Number(this.getSetting('max'));
+    let range = maxValue - minValue
+
+    let pos = (Number(payload) - minValue) / range;
+
+    let progress = this.element.querySelector('.progress > div');
+    progress.style.height = (pos * 100) + '%';
   }
 }
 
@@ -2794,6 +3018,7 @@ IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
   { type: 'hSlider', widgetClass: IotyHSlider},
+  { type: 'vSlider', widgetClass: IotyVSlider},
   { type: 'text', widgetClass: IotyText},
   { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
@@ -2802,6 +3027,7 @@ IOTY_WIDGETS = [
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},
   { type: 'hBar', widgetClass: IotyHBar},
+  { type: 'vBar', widgetClass: IotyVBar},
   { type: 'gauge', widgetClass: IotyGauge},
   { type: 'notification', widgetClass: IotyNotification},
   { type: 'video', widgetClass: IotyVideo},
