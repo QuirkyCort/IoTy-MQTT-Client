@@ -300,7 +300,8 @@ main {
 .grid-stack-item[ioty-type="label"] .label {
   height: calc(100% - 1em);
   width: calc(100% - 1em);
-  font-weight: bold; }
+  font-weight: bold;
+  display: flex; }
 
 .grid-stack-item[ioty-type="display"] .display {
   height: calc(100% - 1em);

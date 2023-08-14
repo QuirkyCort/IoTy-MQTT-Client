@@ -84,6 +84,9 @@ class IotyWidget {
         } else if (setting.type == 'textarea') {
           obj = genDialog.textarea(setting);
           values.push(...obj.values);
+        } else if (setting.type == 'select') {
+          obj = genDialog.select(setting);
+          values.push(...obj.values);
         }
         $body.append(obj.ele);
       }
@@ -131,7 +134,7 @@ class IotyWidget {
 class IotyLabel extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="label"><div>Label</div></div>'
+    this.content = '<div class="label"><div>Label</div></div>';
     this.options.type = 'label';
     this.widgetName = '#widget-label#';
 
@@ -142,6 +145,32 @@ class IotyLabel extends IotyWidget {
         type: 'label',
         value: 'The label widget is only used for displaying text. It does not send or receives any messages.',
         save: false
+      },
+      {
+        name: 'alignH',
+        title: 'Horizontal Alignment',
+        type: 'select',
+        options: [
+          ['Left', 'left'],
+          ['Center', 'center'],
+          ['Right', 'right']
+        ],
+        value: 'left',
+        help: 'Controls the horizontal alignment of the label text.',
+        save: true
+      },
+      {
+        name: 'alignV',
+        title: 'Vertical Alignment',
+        type: 'select',
+        options: [
+          ['Top', 'start'],
+          ['Center', 'center'],
+          ['Bottom', 'end']
+        ],
+        value: 'start',
+        help: 'Controls the vertical alignment of the label text.',
+        save: true
       },
       {
         name: 'label',
@@ -160,8 +189,20 @@ class IotyLabel extends IotyWidget {
   }
 
   processSettings() {
+    let labelDiv = this.element.querySelector('.label > div');
+    labelDiv.innerText = this.getSetting('label');
+
     let label = this.element.querySelector('.label');
-    label.innerText = this.getSetting('label');
+
+    let alignH = this.getSetting('alignH');
+    if (alignH) {
+      label.style.justifyContent = alignH;
+    }
+
+    let alignV = this.getSetting('alignV');
+    if (alignV) {
+      label.style.alignItems = alignV;
+    }
   }
 }
 
@@ -1251,11 +1292,15 @@ class IotyJoy extends IotyWidget {
         save: false
       },
       {
-        name: 'leftRight',
-        title: 'Convert to Left / Right value',
-        type: 'check',
-        value: 'false',
-        help: 'Instead of x/y values, this sends a left/right value that is suitable for driving a differential drive robot.',
+        name: 'valueType',
+        title: 'Value Type',
+        type: 'select',
+        options: [
+          ['X / Y', 'xy'],
+          ['Left / Right', 'leftRight']
+        ],
+        value: 'xy',
+        help: 'X/Y sends the position of the joystick. Left/Right sends speed values that are suitable for driving a differential drive robot.',
         save: true
       },
       {
@@ -1406,7 +1451,7 @@ class IotyJoy extends IotyWidget {
     let range = max - min;
 
     let v1, v2;
-    if (this.getSetting('leftRight')) {
+    if (this.getSetting('valueType') == 'leftRight') {
       let x = (this.x - 0.5) * 2;
       let y = (this.y - 0.5) * -2;
       let angle = Math.atan2(y, x);
@@ -2383,11 +2428,15 @@ class IotyChart extends IotyWidget {
         save: false
       },
       {
-        name: 'timeAxis',
-        title: 'Time on x-axis',
-        type: 'check',
-        value: 'true',
-        help: 'If true, the x value is interpreted as a time, else it will be displayed as it is.',
+        name: 'xAxisType',
+        title: 'X-axis type',
+        type: 'select',
+        options: [
+          ['Number', 'number'],
+          ['Time', 'time'],
+        ],
+        value: 'time',
+        help: 'If set to time, the x value will be interpreted as a time (seconds after Unix epoch).',
         save: true
       },
       {
@@ -2510,7 +2559,7 @@ class IotyChart extends IotyWidget {
       }
     };
 
-    if (this.getSetting('timeAxis') == 'true') {
+    if (this.getSetting('xAxisType') == 'time') {
       options.scales.x.type = 'time';
     }
 
@@ -2567,7 +2616,7 @@ class IotyChart extends IotyWidget {
 
     for (let d of data) {
       let x = d[0];
-      if (this.getSetting('timeAxis') == 'true') {
+      if (this.getSetting('xAxisType') == 'time') {
         x *= 1000;
       }
       dataset.data.push({

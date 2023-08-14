@@ -124,4 +124,34 @@ var genDialog = new function() {
     return obj;
   };
 
+  this.select = function(setting) {
+    let $div = $('<div class="configuration"></div>');
+    let $selectBox = $('<div class="select"><select></select></div>');
+    let $select = $selectBox.find('select');
+
+    for (let option of setting.options) {
+      let $option = $('<option value="' + option[1] + '">' + option[0] + '</option>');
+      $select.append($option);
+    }
+
+    if (setting.value) {
+      $select[0].value = setting.value;
+    }
+
+    $div.append(this.title(setting).ele);
+    $div.append($selectBox);
+
+    let obj = {
+      ele: $div,
+      values: [
+        {
+          name: setting.name,
+          ele: $select[0]
+        }
+      ]
+    }
+
+    return obj;
+  };
+
 }
