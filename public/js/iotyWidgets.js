@@ -120,6 +120,12 @@ class IotyWidget {
     evt.stopImmediatePropagation();
     return false;
   }
+
+  removePlaceholder() {
+    for (let e of this.element.getElementsByClassName('placeholder')) {
+      e.remove();
+    }
+  }
 }
 
 class IotyLabel extends IotyWidget {
@@ -1130,7 +1136,7 @@ class IotyColor extends IotyWidget {
 class IotyNotification extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="notification"><div class="indicator"><div class="label">Notif</div></div></div>'
+    this.content = '<div class="notification"><div class="indicator"><img src="images/notification_icon.png"><div class="label">Notif</div></div></div>'
     this.options.type = 'notification';
     this.widgetName = '#widget-notification#';
     this.state = 0;
@@ -1455,7 +1461,7 @@ class IotyVideo extends IotyWidget {
     super();
     this.content =
       '<div class="video">' +
-        '<video></video>' +
+        '<video src="videos/video_placeholder.mp4" loop autoplay muted></video>' +
       '</div>';
     this.options.type = 'video';
     this.widgetName = '#widget-video#';
@@ -1755,7 +1761,7 @@ class IotyImage extends IotyWidget {
     super();
     this.content =
       '<div class="image">' +
-        '<img>' +
+        '<img src="images/image_placeholder.png">' +
       '</div>';
     this.options.type = 'image';
     this.widgetName = '#widget-image#';
@@ -1866,6 +1872,7 @@ class IotyMap extends IotyWidget {
     this.content =
       '<div class="map">' +
         '<div class="mapEmbed"></div>' +
+        '<img class="placeholder" src="images/map_placeholder.png">' +
       '</div>';
     this.options.type = 'map';
     this.widgetName = '#widget-map#';
@@ -2358,7 +2365,11 @@ class IotySpeech extends IotyWidget {
 class IotyChart extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="chart"><canvas></canvas></div>'
+    this.content =
+      '<div class="chart">' +
+        '<canvas width="1" height="1"></canvas>' +
+        '<img class="placeholder" src="images/chart_placeholder.png">' +
+      '</div>'
     this.options.type = 'chart';
     this.widgetName = '#widget-chart#';
     this.state = 0;
@@ -2622,6 +2633,7 @@ class IotyGauge extends IotyWidget {
           '<div class="value"></div>' +
           '<div class="label"></div>' +
         '</div>' +
+        '<img class="placeholder" src="images/gauge_placeholder.png">' +
       '</div>';
     this.options.type = 'gauge';
     this.widgetName = '#widget-gauge#';
@@ -2768,4 +2780,5 @@ function attachIotyWidget(ele) {
 
   widget.attach(ele);
   ele.widget = widget;
+  widget.removePlaceholder();
 }
