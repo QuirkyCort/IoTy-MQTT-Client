@@ -1245,6 +1245,14 @@ class IotyJoy extends IotyWidget {
         save: false
       },
       {
+        name: 'leftRight',
+        title: 'Convert to Left / Right value',
+        type: 'check',
+        value: 'false',
+        help: 'Instead of x/y values, this sends a left/right value that is suitable for driving a differential drive robot.',
+        save: true
+      },
+      {
         name: 'combine',
         title: 'Send combined value',
         type: 'check',
@@ -1272,7 +1280,7 @@ class IotyJoy extends IotyWidget {
         name: 'min',
         title: 'Minimum value',
         type: 'text',
-        value: '0',
+        value: '-100',
         help: 'Minimum value.',
         save: true
       },
@@ -1391,14 +1399,39 @@ class IotyJoy extends IotyWidget {
     }
     let range = max - min;
 
-    let x = this.x * range + min;
-    let y = this.y * range + min;
+    let v1, v2;
+    if (this.getSetting('leftRight')) {
+      let x = (this.x - 0.5) * 2;
+      let y = (this.y - 0.5) * -2;
+      let angle = Math.atan2(y, x);
+      let magnitude = Math.sqrt(x**2 + y**2);
+
+      if (angle > Math.PI / 2) {
+        v1 = (angle - Math.PI / 2) / (Math.PI / 2) * -2 + 1;
+        v2 = 1;
+      } else if (angle > 0) {
+        v1 = 1;
+        v2 = angle / (Math.PI / 2) * 2 - 1;
+      } else if (angle > -Math.PI / 2) {
+        v1 = angle / -(Math.PI / 2) * -2 + 1;
+        v2 = -1;
+      } else {
+        v1 = -1;
+        v2 = (angle + Math.PI / 2) / -(Math.PI / 2) * 2 - 1;
+      }
+
+      v1 *= magnitude;
+      v2 *= magnitude;
+    } else {
+      v1 = this.x * range + min;
+      v2 = (1 - this.y) * range + min;
+    }
 
     if (this.getSetting('combine') == 'true') {
-      this.payload1 = x + ',' + y;
+      this.payload1 = v1 + ',' + v2;
     } else {
-      this.payload1 = String(x);
-      this.payload2 = String(y);
+      this.payload1 = String(v1);
+      this.payload2 = String(v2);
     }
   }
 
