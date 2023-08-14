@@ -1792,6 +1792,14 @@ class IotyImage extends IotyWidget {
         help: 'Publish to this topic to control the image display. Use keywords: "show", "hide", or "toggle".',
         save: true
       },
+      {
+        name: 'dataTopic',
+        title: 'Data Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish image data to this topic for display. This will override the image URL.',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -1810,7 +1818,7 @@ class IotyImage extends IotyWidget {
     }
 
     this.topics = {};
-    for (let topic of ['urlTopic', 'controlTopic']) {
+    for (let topic of ['urlTopic', 'controlTopic', 'dataTopic']) {
       this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
@@ -1823,6 +1831,8 @@ class IotyImage extends IotyWidget {
       this.onMessageArrivedUrl(payload);
     } else if (topic == this.topics['controlTopic']) {
       this.onMessageArrivedControl(payload);
+    } else if (topic == this.topics['dataTopic']) {
+      this.onMessageArrivedData(payload);
     }
   }
 
@@ -1840,6 +1850,13 @@ class IotyImage extends IotyWidget {
     } else if (payload == 'toggle') {
       image.classList.toggle('hide');
     }
+  }
+
+  onMessageArrivedData(payload) {
+    let image = this.element.querySelector('img');
+    image.src = URL.createObjectURL(
+      new Blob([payload])
+    );
   }
 }
 

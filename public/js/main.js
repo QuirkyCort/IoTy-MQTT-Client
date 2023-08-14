@@ -475,7 +475,13 @@ var main = new function() {
     let elements = self.grid.getGridItems();
     for (let element of elements) {
       if (element.widget.subscriptions.includes(message.destinationName)) {
-        element.widget.onMessageArrived(message.payloadString, message.destinationName);
+        let payload;
+        try {
+          payload = message.payloadString;
+        } catch (err) {
+          payload = message.payloadBytes;
+        }
+        element.widget.onMessageArrived(payload, message.destinationName);
       }
     }
   };
