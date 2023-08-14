@@ -81,7 +81,7 @@ let MSGS = {
     en: 'Chart',
   },
   '#widget-gauge#': {
-    en: 'Gauge',
+    en: 'Radial Gauge',
   },
 };
 let MSGS_KEYS = Object.keys(MSGS);
