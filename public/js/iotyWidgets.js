@@ -2324,7 +2324,13 @@ class IotyMap extends IotyWidget {
       let percentBar = document.createElement('div');
       percentBox.classList.add('percentBox');
       percentBar.classList.add('percentBar');
-      percentBar.style.height = markerStrings[6] + '%';
+      let percent = markerStrings[6];
+      if (percent > 100) {
+        percent = 100;
+      } else if (percent < 0) {
+        percent = 0;
+      }
+      percentBar.style.height = percent + '%';
       if (markerStrings[5].trim()) {
         percentBar.style.background = markerStrings[5];
       }
