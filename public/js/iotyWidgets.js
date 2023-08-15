@@ -2860,7 +2860,9 @@ class IotyChart extends IotyWidget {
 
     if (topicIndex != -1) {
       let data = JSON.parse(payload);
-      if (data.type == 'data_all') {
+      if (typeof data == 'number') {
+        this.addSome(topicIndex, [[Date.now() / 1000, data]]);
+      } else if (data.type == 'data_all') {
         this.replaceAll(topicIndex, data.data);
       } else if (data.type == 'data_some') {
         this.addSome(topicIndex, data.data);
