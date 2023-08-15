@@ -113,6 +113,7 @@ class IotyWidget {
   }
 
   processSettings() {
+    this.subscriptions = [];
   }
 
   onMessageArrived(payload) {
@@ -189,6 +190,8 @@ class IotyLabel extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let labelDiv = this.element.querySelector('.label > div');
     labelDiv.innerText = this.getSetting('label');
 
@@ -275,6 +278,8 @@ class IotyButton extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let button = this.element.querySelector('.button');
     button.innerText = this.getSetting('label');
   }
@@ -359,6 +364,8 @@ class IotySwitch extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
   }
@@ -459,6 +466,8 @@ class IotyHSlider extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -598,6 +607,8 @@ class IotyVSlider extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -709,6 +720,8 @@ class IotyText extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
   }
@@ -796,6 +809,8 @@ class IotySelect extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -860,6 +875,8 @@ class IotyDisplay extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     this.subscriptions.push(this.getSetting('topic'));
   }
 
@@ -931,6 +948,8 @@ class IotyStatus extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -1018,6 +1037,8 @@ class IotyHBar extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     this.subscriptions.push(this.getSetting('topic'));
 
     let label = this.element.querySelector('.label');
@@ -1103,6 +1124,8 @@ class IotyVBar extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     this.subscriptions.push(this.getSetting('topic'));
 
     let label = this.element.querySelector('.label');
@@ -1240,6 +1263,8 @@ class IotyColor extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -1463,6 +1488,8 @@ class IotyNotification extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
 
@@ -1601,6 +1628,8 @@ class IotyJoy extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
   }
@@ -1808,6 +1837,8 @@ class IotyVideo extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let video = this.element.querySelector('video');
 
     if (this.getSetting('url').trim() != '') {
@@ -1952,6 +1983,8 @@ class IotyAudio extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let audio = this.element.querySelector('audio');
     let musicAnimation = this.element.querySelector('.musicAnimation');
 
@@ -2084,6 +2117,8 @@ class IotyImage extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let image = this.element.querySelector('img');
 
     if (this.getSetting('url').trim() != '') {
@@ -2248,6 +2283,8 @@ class IotyMap extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     this.topics = {};
     for (let topic of ['markerTopic', 'controlTopic']) {
       this.topics[topic] = this.getSetting(topic);
@@ -2467,6 +2504,8 @@ class IotyTTS extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     this.subscriptions.push(this.getSetting('topic'));
   }
 
@@ -2541,6 +2580,8 @@ class IotySpeech extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
     const glow = this.element.querySelector('.glow');
@@ -2752,6 +2793,8 @@ class IotyChart extends IotyWidget {
   }
 
   processSettings() {
+    super.processSettings();
+
     let chartDiv = this.element.querySelector('.chart');
     chartDiv.replaceChildren();
     chartDiv.innerHTML = '<canvas></canvas>';
@@ -2901,10 +2944,10 @@ class IotyGauge extends IotyWidget {
     super();
     this.content =
       '<div class="gauge">' +
-        '<canvas width="1000" height="1000"></canvas>' +
+        '<canvas width="100" height="100"></canvas>' +
         '<div class="text">' +
-          '<div class="value"></div>' +
-          '<div class="label"></div>' +
+          '<div class="value">0</div>' +
+          '<div class="label">Gauge</div>' +
         '</div>' +
         '<img class="placeholder" src="images/gauge_placeholder.png">' +
       '</div>';
@@ -2958,46 +3001,87 @@ class IotyGauge extends IotyWidget {
 
   attach(ele) {
     super.attach(ele);
+
+    this.targetValue = 0;
+    this.currentValue = 0;
+    this.prevValue = 0;
+    this.prevTime = null;
+
+    let canvas = this.element.querySelector('canvas');
+    let resizeObserver = new ResizeObserver(this.canvasResize);
+    resizeObserver.observe(canvas);
+
+    requestAnimationFrame(this.drawGauge.bind(this));
   }
 
   processSettings() {
+    super.processSettings();
+
     this.subscriptions.push(this.getSetting('topic'));
 
     let label = this.element.querySelector('.label');
     label.innerText = this.getSetting('label');
-
-    this.drawGauge(0);
   }
 
-  drawGauge(value) {
+  canvasResize(entries) {
+    for (let entry of entries) {
+      let canvas = entry.target;
+      let size = Math.min(canvas.clientWidth, canvas.clientHeight)
+      canvas.width = size;
+      canvas.height = size;
+    }
+  }
+
+  drawGauge(time) {
     function toRad(deg) {
       return deg / 180 * Math.PI;
     }
 
-    if (value < 0) {
-      value = 0;
-    } else if (value > 1) {
-      value = 1;
+    if (this.prevTime == null) {
+      this.prevTime = time - 16;
+    }
+
+    let delta = time - this.prevTime;
+    this.prevTime = time;
+
+    if (this.targetValue < 0) {
+      this.targetValue = 0;
+    } else if (this.targetValue > 1) {
+      this.targetValue = 1;
+    }
+
+    let speed = (this.targetValue - this.prevValue) / 500;
+    let diff = this.targetValue - this.currentValue;
+
+    if (diff * speed > 0) {
+      this.currentValue += speed * delta;
+    } else {
+      this.currentValue = this.targetValue;
     }
 
     let canvas = this.element.querySelector('canvas');
+    let s = Math.min(canvas.width, canvas.height);
     let ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, s, s);
 
     ctx.beginPath();
-    ctx.arc(500, 500, 450, toRad(-220), toRad(40));
-    ctx.arc(500, 500, 380, toRad(40), toRad(-220), true);
-    ctx.arc(500, 500, 450, toRad(-220), toRad(-220));
+    ctx.arc(0.5*s, 0.5*s, 0.45*s, toRad(-220), toRad(40));
+    ctx.arc(0.5*s, 0.5*s, 0.38*s, toRad(40), toRad(-220), true);
+    ctx.arc(0.5*s, 0.5*s, 0.45*s, toRad(-220), toRad(-220));
     ctx.fillStyle = 'lightgray';
+    ctx.closePath();
     ctx.fill();
 
-    let targetAngle = value * 260 + -220;
+    let targetAngle = this.currentValue * 260 + -220;
     ctx.beginPath();
-    ctx.arc(500, 500, 450, toRad(-220), toRad(targetAngle));
-    ctx.arc(500, 500, 380, toRad(targetAngle), toRad(-220), true);
-    ctx.arc(500, 500, 450, toRad(-220), toRad(-220));
+    ctx.arc(0.5*s, 0.5*s, 0.45*s, toRad(-220), toRad(targetAngle));
+    ctx.arc(0.5*s, 0.5*s, 0.38*s, toRad(targetAngle), toRad(-220), true);
+    ctx.arc(0.5*s, 0.5*s, 0.45*s, toRad(-220), toRad(-220));
     ctx.fillStyle = '#007bff';
+    ctx.closePath();
     ctx.fill();
+
+    requestAnimationFrame(this.drawGauge.bind(this));
   }
 
   onMessageArrived(payload) {
@@ -3008,8 +3092,8 @@ class IotyGauge extends IotyWidget {
     let maxValue = Number(this.getSetting('max'));
     let range = maxValue - minValue
 
-    let pos = (Number(payload) - minValue) / range;
-    this.drawGauge(pos);
+    this.prevValue = this.currentValue;
+    this.targetValue = (Number(payload) - minValue) / range;
   }
 }
 
