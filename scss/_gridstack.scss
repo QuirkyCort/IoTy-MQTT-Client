@@ -725,3 +725,30 @@ main {
     }
   }
 }
+
+.grid-stack-item[ioty-type="imageTM"] {
+  .imageTM {
+    position: relative;
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+
+    .wrapper {
+      height: 100%;
+      width: 100%;
+
+      canvas {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .results {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background: rgba(255,255,255,0.5);
+      padding: 0.2em;
+    }
+  }
+}

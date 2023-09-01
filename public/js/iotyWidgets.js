@@ -130,6 +130,9 @@ class IotyWidget {
       e.remove();
     }
   }
+
+  destroy() {
+  }
 }
 
 class IotyLabel extends IotyWidget {
@@ -3105,6 +3108,235 @@ class IotyGauge extends IotyWidget {
   }
 }
 
+class IotyImageTM extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="imageTM">' +
+      '<div class="wrapper"></div><div class="results"></div>' +
+      '<img class="placeholder" src="images/imageTM_placeholder.png">' +
+      '</div>';
+    this.options.type = 'imageTM';
+    this.widgetName = '#widget-imageTM#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The Teachable Machince (Image) widget will recognise objects seen by the camera, and publish the result to the specified topic.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'url',
+        title: 'Model URL',
+        type: 'text',
+        value: '',
+        help: 'Link to your model provided by Teachable Machine export panel',
+        save: true
+      },
+      {
+        name: 'threshold',
+        title: 'Confidence Threshold (0 to 1.0)',
+        type: 'text',
+        value: '0.8',
+        help: 'The result will only be sent if the confidence is above the threshold. If blank or invalid, the default of 0.8 will be used.',
+        save: true
+      },
+      {
+        name: 'flip',
+        title: 'Flip Camera Image',
+        type: 'check',
+        value: 'true',
+        help: 'If true, the camera image will be flipped left to right.',
+        save: true
+      },
+      {
+        name: 'resultGuide',
+        title: 'Result Type',
+        type: 'html',
+        value:
+        '<p>Class name only</p>' +
+        '<ul>' +
+          '<li>Sends the name of the class with the highest probability, but only if it is above the confidence threshold</li>' +
+          '<li>Only send result if changed</li>' +
+          '<li>If none of the results are above the confidence threshold, an empty string will be sent</li>' +
+        '</ul>' +
+        '<p>Class and Confidence</p>' +
+        '<ul>' +
+          '<li>Sends classname and probability as an array in json format every 0.5 seconds</li>' +
+          '<li>Example: ["class1", 0.89]</li>' +
+          '<li>Only send the result with the highest confidence</li>' +
+          '<li>Ignores confidence threshold</li>' +
+        '</ul>' +
+        '<p>All Results</p>' +
+        '<ul>' +
+          '<li>Sends all results as an array of arrays in json format every 0.5 seconds</li>' +
+          '<li>Example: [["class1", 0.89], ["class2", 0.11]]</li>' +
+          '<li>Ignores confidence threshold</li>' +
+        '</ul>',
+        save: false
+      },
+      {
+        name: 'resultType',
+        title: 'Result Type',
+        type: 'select',
+        options: [
+          ['Class Name only', 'class'],
+          ['Class and Confidence (json)', 'classAndConfidence'],
+          ['All Results (json)', 'all'],
+        ],
+        value: 'class',
+        save: true
+      },
+      {
+        name: 'displayResults',
+        title: 'Display Results',
+        type: 'check',
+        value: 'true',
+        help: 'If true, results will be displayed on screen.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  async attach(ele) {
+    super.attach(ele);
+    this.webcam = new tmImage.Webcam(200, 200, true);
+    await this.webcam.setup();
+    await this.webcam.play();
+    this.loopStop = false;
+    window.requestAnimationFrame(this.updateWebcam.bind(this));
+
+    let wrapper = this.element.querySelector('.wrapper');
+    wrapper.innerHTML = '';
+    wrapper.appendChild(this.webcam.canvas);
+
+    this.intervalID = setInterval(this.predict.bind(this), 500);
+
+    this.prevResult = '';
+  }
+
+  async processSettings() {
+    super.processSettings();
+
+    try {
+      let url = this.getSetting('url').trim();
+      if (url[url.length-1] != '/') {
+        url += '/';
+      }
+      const modelURL = url + "model.json";
+      const metadataURL = url + "metadata.json";
+      this.model = await tmImage.load(modelURL, metadataURL);
+    } catch (e) {
+      this.model = null;
+      toastMsg('Unable to load Teachable Machine model');
+    }
+
+    let flip = false;
+    if (this.getSetting('flip') == 'true') {
+      flip = true
+    }
+    this.webcam = new tmImage.Webcam(200, 200, flip);
+    await this.webcam.setup();
+    await this.webcam.play();
+
+    let wrapper = this.element.querySelector('.wrapper');
+    wrapper.innerHTML = '';
+    wrapper.appendChild(this.webcam.canvas);
+  }
+
+  async updateWebcam() {
+    if (this.loopStop) {
+      return;
+    }
+
+    this.webcam.update();
+    window.requestAnimationFrame(this.updateWebcam.bind(this));
+  }
+
+  displayResults(results) {
+    if (this.getSetting('displayResults') == 'true') {
+      let html = '';
+      for (let result of results) {
+        html += result.className + ': ' + result.probability.toFixed(2) + '<br>';
+      }
+      this.element.querySelector('.results').innerHTML = html;
+      this.element.querySelector('.results').style.display = 'block';
+    } else {
+      this.element.querySelector('.results').style.display = 'none';
+    }
+  }
+
+  findHighest(results) {
+    let highestIndex = 0;
+    let highestProbability = 0;
+    for (let i in results) {
+      if (results[i].probability > highestProbability) {
+        highestIndex = i;
+        highestProbability = results[i].probability;
+      }
+    }
+    return results[highestIndex];
+  }
+
+  async predict() {
+    if (this.model) {
+      const results = await this.model.predict(this.webcam.canvas);
+
+      this.displayResults(results);
+      let highest = this.findHighest(results);
+
+      let threshold = parseFloat(this.getSetting('threshold'));
+      if (threshold == NaN) {
+        threshold = 0.8;
+      }
+
+      if (main.mode == main.MODE_RUN) {
+        if (this.getSetting('resultType') == 'class') {
+          let result = '';
+          if (highest.probability > threshold) {
+            result = highest.className;
+          }
+
+          if (result != this.prevResult) {
+            this.prevResult = result;
+            main.publish(this.getSetting('topic'), result);
+          }
+
+        } else if (this.getSetting('resultType') == 'classAndConfidence') {
+          let result = [];
+          result.push(highest.className);
+          result.push(highest.probability);
+          main.publish(this.getSetting('topic'), JSON.stringify(result));
+
+        } else if (this.getSetting('resultType') == 'all') {
+          let all = [];
+          for (let result of results) {
+            all.push([result.className, result.probability]);
+          }
+          main.publish(this.getSetting('topic'), JSON.stringify(all));
+        }
+      }
+    }
+  }
+
+  destroy() {
+    this.loopStop = true;
+    clearInterval(this.intervalID);
+  }
+}
+
 
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
@@ -3129,10 +3361,11 @@ IOTY_WIDGETS = [
   { type: 'tts', widgetClass: IotyTTS},
   { type: 'speech', widgetClass: IotySpeech},
   { type: 'chart', widgetClass: IotyChart},
+  { type: 'imageTM', widgetClass: IotyImageTM},
 ];
 
 // Helper function to attach widget to element
-function attachIotyWidget(ele) {
+async function attachIotyWidget(ele) {
   if (typeof ele.widget != 'undefined') {
     return;
   }
@@ -3145,7 +3378,11 @@ function attachIotyWidget(ele) {
     }
   }
 
-  widget.attach(ele);
+  if (widget.attach.constructor.name == 'AsyncFunction') {
+    await widget.attach(ele);
+  } else {
+    widget.attach(ele);
+  }
   ele.widget = widget;
   widget.removePlaceholder();
 }

@@ -789,6 +789,24 @@ main {
       text-align: center;
       font-size: 200%; }
 
+.grid-stack-item[ioty-type="imageTM"] .imageTM {
+  position: relative;
+  height: calc(100% - 1em);
+  width: calc(100% - 1em); }
+  .grid-stack-item[ioty-type="imageTM"] .imageTM .wrapper {
+    height: 100%;
+    width: 100%; }
+    .grid-stack-item[ioty-type="imageTM"] .imageTM .wrapper canvas {
+      height: 100%;
+      width: 100%;
+      object-fit: contain; }
+  .grid-stack-item[ioty-type="imageTM"] .imageTM .results {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.2em; }
+
 .configuration {
   padding: 0.5em 0em; }
   .configuration input[type=text], .configuration input[type=file], .configuration textarea {

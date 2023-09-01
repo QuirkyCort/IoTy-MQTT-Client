@@ -89,6 +89,9 @@ let MSGS = {
   '#widget-gauge#': {
     en: 'Radial Gauge',
   },
+  '#widget-imageTM#': {
+    en: 'Teachable Machine (Image)',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 

@@ -54,6 +54,8 @@ var main = new function() {
     self.$gridContainer = $('.gridContainer');
     self.$bell = $('#bell');
 
+    self.disableAddWidgetEvent = false;
+
     self.updateTextLanguage();
     self.initWidgetToolbox();
     self.initGridStack();
@@ -234,7 +236,7 @@ var main = new function() {
     });
     self.grid.on('added', self.gridStackAdded);
     self.grid.on('change', self.gridStackChange);
-    self.grid.on('removed', function() { window.setTimeout(self.gridStackChange, 0)});
+    self.grid.on('removed', self.gridStackRemoved);
 
     // Prevent resize from triggering settings dialog
     self.grid.on('resizestart', function(e, ele) {
@@ -251,10 +253,13 @@ var main = new function() {
     window.addEventListener('resize', self.resizeGrid);
   };
 
-  this.gridStackAdded = function(e, items) {
+  this.gridStackAdded = async function(e, items) {
+    if (self.disableAddWidgetEvent) {
+      return
+    }
     for (let item of items) {
       item.el.classList.remove('newWidget');
-      attachIotyWidget(item.el);
+      await attachIotyWidget(item.el);
     }
     self.gridStackChange(e, items);
   };
@@ -264,6 +269,13 @@ var main = new function() {
       self.saveAndPublishJSON();
     }
   };
+
+  this.gridStackRemoved = function(e, items) {
+    for (let item of items) {
+      item.el.widget.destroy();
+    }
+    window.setTimeout(self.gridStackChange, 0);
+  }
 
   // Update text already in html
   this.updateTextLanguage = function() {
@@ -655,10 +667,11 @@ var main = new function() {
     return JSON.stringify(save);
   };
 
-  this.loadJSON = function(json) {
+  this.loadJSON = async function(json) {
     self.grid.removeAll();
     let save = JSON.parse(json);
 
+    self.disableAddWidgetEvent = true;
     for (let widget of save.widgets) {
       let content;
 
@@ -675,12 +688,14 @@ var main = new function() {
         h: widget.h
       });
 
-      attachIotyWidget(ele);
+      ele.classList.remove('newWidget');
+      await attachIotyWidget(ele);
       for (let name in widget.settings) {
         ele.widget.setSetting(name, widget.settings[name]);
       }
       ele.widget.processSettings();
     }
+    self.disableAddWidgetEvent = false;
 
     return save;
   };
