@@ -3238,6 +3238,35 @@ class IotyImageTM extends IotyWidget {
   async processSettings() {
     super.processSettings();
 
+    let flip = false;
+    if (this.getSetting('flip') == 'true') {
+      flip = true
+    }
+
+    if (this.webcam) {
+      this.webcam.stop();
+    }
+
+    this.webcam = new tmImage.Webcam(200, 200, flip);
+
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    devices = devices.filter(e => e.kind == 'videoinput' );
+
+    let cameraIndex = parseInt(this.getSetting('cameraIndex'));
+    if (cameraIndex == NaN) {
+      cameraIndex = 0;
+    }
+    if (cameraIndex >= devices.length) {
+      cameraIndex = 0;
+    }
+
+    await this.webcam.setup({ deviceId: devices[cameraIndex].deviceId });
+    await this.webcam.play();
+
+    let wrapper = this.element.querySelector('.wrapper');
+    wrapper.innerHTML = '';
+    wrapper.appendChild(this.webcam.canvas);
+
     try {
       let url = this.getSetting('url').trim();
       if (url[url.length-1] != '/') {
@@ -3250,27 +3279,6 @@ class IotyImageTM extends IotyWidget {
       this.model = null;
       toastMsg('Unable to load Teachable Machine model');
     }
-
-    let flip = false;
-    if (this.getSetting('flip') == 'true') {
-      flip = true
-    }
-    this.webcam = new tmImage.Webcam(200, 200, flip);
-
-    let devices = await navigator.mediaDevices.enumerateDevices();
-    devices = devices.filter(e => e.kind == 'videoinput' );
-
-    let cameraIndex = parseInt(this.getSetting('cameraIndex'));
-    if (cameraIndex == NaN) {
-      cameraIndex = 0;
-    }
-
-    await this.webcam.setup({ deviceId: devices[cameraIndex].deviceId });
-    await this.webcam.play();
-
-    let wrapper = this.element.querySelector('.wrapper');
-    wrapper.innerHTML = '';
-    wrapper.appendChild(this.webcam.canvas);
   }
 
   async updateWebcam() {
