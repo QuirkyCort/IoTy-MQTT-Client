@@ -3153,6 +3153,20 @@ class IotyImageTM extends IotyWidget {
         save: true
       },
       {
+        name: 'facingMode',
+        title: 'Camera Selection',
+        type: 'select',
+        options: [
+          ['Towards User', 'user'],
+          ['Away from User', 'environment'],
+          ['To Left', 'left'],
+          ['To Right', 'right'],
+        ],
+        value: 'user',
+        help: 'Determines which camera is used',
+        save: true
+      },
+      {
         name: 'flip',
         title: 'Flip Camera Image',
         type: 'check',
@@ -3248,7 +3262,7 @@ class IotyImageTM extends IotyWidget {
       flip = true
     }
     this.webcam = new tmImage.Webcam(200, 200, flip);
-    await this.webcam.setup();
+    await this.webcam.setup({ facingMode: this.getSetting('facingMode') });
     await this.webcam.play();
 
     let wrapper = this.element.querySelector('.wrapper');
