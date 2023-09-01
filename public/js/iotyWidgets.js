@@ -3235,6 +3235,11 @@ class IotyImageTM extends IotyWidget {
     this.prevResult = '';
   }
 
+  async awaitTimeout(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay));
+  }
+
+
   async processSettings() {
     super.processSettings();
 
@@ -3245,6 +3250,7 @@ class IotyImageTM extends IotyWidget {
 
     if (this.webcam) {
       this.webcam.stop();
+      await this.awaitTimeout(2000);
     }
 
     this.webcam = new tmImage.Webcam(200, 200, flip);
