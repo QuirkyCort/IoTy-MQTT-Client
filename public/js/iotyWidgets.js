@@ -3153,17 +3153,11 @@ class IotyImageTM extends IotyWidget {
         save: true
       },
       {
-        name: 'facingMode',
+        name: 'cameraIndex',
         title: 'Camera Selection',
-        type: 'select',
-        options: [
-          ['Towards User', 'user'],
-          ['Away from User', 'environment'],
-          ['To Left', 'left'],
-          ['To Right', 'right'],
-        ],
-        value: 'user',
-        help: 'Determines which camera is used',
+        type: 'text',
+        value: '0',
+        help: 'Determines which camera is used. 0 will be the first camera, 1 will be second camera, etc.',
         save: true
       },
       {
@@ -3262,7 +3256,16 @@ class IotyImageTM extends IotyWidget {
       flip = true
     }
     this.webcam = new tmImage.Webcam(200, 200, flip);
-    await this.webcam.setup({ facingMode: this.getSetting('facingMode') });
+
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    devices = devices.filter(e => e.kind == 'videoinput' );
+
+    let cameraIndex = parseInt(this.getSetting('cameraIndex'));
+    if (cameraIndex == NaN) {
+      cameraIndex = 0;
+    }
+
+    await this.webcam.setup({ deviceId: devices[cameraIndex].deviceId });
     await this.webcam.play();
 
     let wrapper = this.element.querySelector('.wrapper');
@@ -3305,7 +3308,7 @@ class IotyImageTM extends IotyWidget {
   }
 
   async predict() {
-    if (this.model) {
+    if (this.model && this.webcam.canvas) {
       const results = await this.model.predict(this.webcam.canvas);
 
       this.displayResults(results);
