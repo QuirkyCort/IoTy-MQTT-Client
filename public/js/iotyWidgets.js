@@ -2698,7 +2698,7 @@ class IotyChart extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The chart widget retrieve data from the specified topic and display it in a chart.',
+        value: 'The chart widget retrieve data from the specified topic and display it in a chart. It should be used with the "MQTT Logger" extension in IoTy.',
         save: false
       },
       {
