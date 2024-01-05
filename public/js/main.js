@@ -472,10 +472,10 @@ var main = new function() {
     }
   };
 
-  this.onMessageArrived = function(message) {
+  this.onMessageArrived = async function(message) {
     let username = self.getSetting(self.connectSettings, 'username');
     if (message.destinationName == username + '/' + self.PROJECT_SAVE_TOPIC) {
-      self.loadProject(message.payloadString);
+      await self.loadProject(message.payloadString);
 
       if (self.linkMode) {
         self.subscribeAll();
@@ -700,11 +700,11 @@ var main = new function() {
     return save;
   };
 
-  this.loadProject = function(json) {
+  this.loadProject = async function(json) {
     self.enableSave = false;
 
     if (self.jsonSave == '' || self.linkMode) {
-      self.loadJSON(json);
+      await self.loadJSON(json);
       self.jsonSave = json;
     } else if (json == self.jsonSave) {
       if (this.localOrRemoteDialog) {
