@@ -1551,10 +1551,11 @@ class IotyJoy extends IotyWidget {
         type: 'select',
         options: [
           ['X / Y', 'xy'],
-          ['Left / Right', 'leftRight']
+          ['Left / Right', 'leftRight'],
+          ['Polar', 'polar']
         ],
         value: 'xy',
-        help: 'X/Y sends the position of the joystick. Left/Right sends speed values that are suitable for driving a differential drive robot.',
+        help: 'X/Y sends the position of the joystick. Left/Right sends speed values a differential drive robot. Polar sends angle in deg and distance (0 to max).',
         save: true
       },
       {
@@ -1705,6 +1706,7 @@ class IotyJoy extends IotyWidget {
       max = 100;
     }
     let range = max - min;
+    let center = (max + min) / 2;
 
     let v1, v2;
     if (this.getSetting('valueType') == 'leftRight') {
@@ -1729,6 +1731,16 @@ class IotyJoy extends IotyWidget {
 
       v1 *= magnitude;
       v2 *= magnitude;
+      v1 = v1 * range / 2 + center;
+      v2 = v2 * range / 2 + center;
+    } else if (this.getSetting('valueType') == 'polar') {
+      let x = (this.x - 0.5) * 2;
+      let y = (this.y - 0.5) * -2;
+      let angle = Math.atan2(y, x);
+      let magnitude = Math.sqrt(x**2 + y**2);
+
+      v1 = angle / Math.PI * 180;
+      v2 = magnitude * max;
     } else {
       v1 = this.x * range + min;
       v2 = (1 - this.y) * range + min;
