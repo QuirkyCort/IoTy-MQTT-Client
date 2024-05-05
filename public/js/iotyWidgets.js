@@ -3377,12 +3377,12 @@ class IotyImageTM extends IotyWidget {
   }
 }
 
-class IotyHeartBeat extends IotyWidget {
+class IotyHeartbeat extends IotyWidget {
   constructor() {
     super();
-    this.content = '<div class="heartBeat"><div class="indicator"><img class="gray" src="images/heart_gray.svg"><img class="red" src="images/heart_red.svg"><div class="label">Heart Beat</div></div></div>'
-    this.options.type = 'heartBeat';
-    this.widgetName = '#widget-heartBeat#';
+    this.content = '<div class="heartbeat"><div class="indicator"><img class="gray" src="images/heart_gray.svg"><img class="red" src="images/heart_red.svg"><div class="label">Heartbeat</div></div></div>'
+    this.options.type = 'heartbeat';
+    this.widgetName = '#widget-heartbeat#';
     this.state = 0;
 
     let settings = [
@@ -3390,7 +3390,7 @@ class IotyHeartBeat extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The heart beat widget will publish a message to the specified topic regularly. You can use this to let any subscribers know that the app is running.',
+        value: 'The heartbeat widget will publish a message to the specified topic regularly. You can use this to let any subscribers know that the app is running.',
         save: false
       },
       {
@@ -3417,6 +3417,14 @@ class IotyHeartBeat extends IotyWidget {
         help: 'Interval between each publish in seconds.',
         save: true
       },
+      {
+        name: 'sendWhenHidden',
+        title: 'Send heartbeat even when hidden',
+        type: 'check',
+        value: 'false',
+        help: 'If true, heartbeat messages will be sent even when the browser tab is hidden (...but not closed or suspended by the browser).',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -3440,6 +3448,11 @@ class IotyHeartBeat extends IotyWidget {
   publish() {
     if (main.mode != main.MODE_RUN) {
       return;
+    }
+    if (document.hidden) {
+      if (this.getSetting('sendWhenHidden') == 'false') {
+        return;
+      }
     }
 
     let message = this.getSetting('message');
@@ -3469,7 +3482,7 @@ IOTY_WIDGETS = [
   { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
   { type: 'joy', widgetClass: IotyJoy},
-  { type: 'heartBeat', widgetClass: IotyHeartBeat},
+  { type: 'heartbeat', widgetClass: IotyHeartbeat},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},

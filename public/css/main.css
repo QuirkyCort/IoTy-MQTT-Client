@@ -808,13 +808,13 @@ main {
     background: rgba(255, 255, 255, 0.5);
     padding: 0.2em; }
 
-.grid-stack-item[ioty-type="heartBeat"] .heartBeat {
+.grid-stack-item[ioty-type="heartbeat"] .heartbeat {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center; }
-.grid-stack-item[ioty-type="heartBeat"] .indicator {
+.grid-stack-item[ioty-type="heartbeat"] .indicator {
   position: relative;
   width: 80%;
   height: 80%;
@@ -826,18 +826,18 @@ main {
   justify-content: center;
   align-items: center;
   flex-direction: column; }
-  .grid-stack-item[ioty-type="heartBeat"] .indicator img {
+  .grid-stack-item[ioty-type="heartbeat"] .indicator img {
     max-width: 60%;
     max-height: 60%;
     position: absolute;
     top: 0;
     left: auto; }
-  .grid-stack-item[ioty-type="heartBeat"] .indicator .red {
+  .grid-stack-item[ioty-type="heartbeat"] .indicator .red {
     display: none; }
-  .grid-stack-item[ioty-type="heartBeat"] .indicator .label {
+  .grid-stack-item[ioty-type="heartbeat"] .indicator .label {
     position: absolute;
     bottom: 0; }
-.grid-stack-item[ioty-type="heartBeat"] .indicator.flash .red {
+.grid-stack-item[ioty-type="heartbeat"] .indicator.flash .red {
   display: block; }
 
 .configuration {

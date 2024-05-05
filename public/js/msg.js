@@ -92,8 +92,8 @@ let MSGS = {
   '#widget-imageTM#': {
     en: 'Teachable Machine (Image)',
   },
-  '#widget-heartBeat#': {
-    en: 'Heart Beat',
+  '#widget-heartbeat#': {
+    en: 'Heartbeat',
   },
 };
 let MSGS_KEYS = Object.keys(MSGS);
