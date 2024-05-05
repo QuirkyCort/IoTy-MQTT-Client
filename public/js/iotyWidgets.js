@@ -3377,6 +3377,88 @@ class IotyImageTM extends IotyWidget {
   }
 }
 
+class IotyHeartBeat extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="heartBeat"><div class="indicator"><img class="gray" src="images/heart_gray.svg"><img class="red" src="images/heart_red.svg"><div class="label">Heart Beat</div></div></div>'
+    this.options.type = 'heartBeat';
+    this.widgetName = '#widget-heartBeat#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The heart beat widget will publish a message to the specified topic regularly. You can use this to let any subscribers know that the app is running.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'message',
+        title: 'Message to publish',
+        type: 'text',
+        value: '<time>',
+        help: 'Message to publish. If the special string "<time>" is used, the current UNIX time will be sent.',
+        save: true
+      },
+      {
+        name: 'interval',
+        title: 'Interval between publish',
+        type: 'text',
+        value: '5',
+        help: 'Interval between each publish in seconds.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    super.processSettings();
+
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    let interval = parseFloat(this.getSetting('interval')) * 1000;
+    if (interval) {
+      this.timer = setInterval(this.publish.bind(this), interval);
+    }
+  }
+
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+
+    let message = this.getSetting('message');
+    if (message == '<time>') {
+      message = String(Math.floor((new Date()).getTime() / 1000));
+    }
+    main.publish(this.getSetting('topic'), message);
+    this.flashIndicator();
+  }
+
+  flashIndicator() {
+    let indicator = this.element.querySelector('.indicator');
+    indicator.classList.add('flash');
+    setTimeout(function(){
+      indicator.classList.remove('flash');
+    }, 200);
+  }
+}
+
 
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
@@ -3387,6 +3469,7 @@ IOTY_WIDGETS = [
   { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
   { type: 'joy', widgetClass: IotyJoy},
+  { type: 'heartBeat', widgetClass: IotyHeartBeat},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},

@@ -607,10 +607,10 @@ main {
   position: relative; }
   .grid-stack-item[ioty-type="joy"] .joy .wrapper {
     position: relative;
-    left: 20%;
-    top: 10%;
-    max-width: 80%;
-    max-height: 80%;
+    left: 5%;
+    top: 5%;
+    max-width: 90%;
+    max-height: 90%;
     aspect-ratio: 1/1; }
   .grid-stack-item[ioty-type="joy"] .joy img {
     max-width: 100%;
@@ -784,7 +784,8 @@ main {
     width: 100%;
     object-fit: contain; }
   .grid-stack-item[ioty-type="gauge"] .gauge .text {
-    position: absolute; }
+    position: absolute;
+    text-align: center; }
     .grid-stack-item[ioty-type="gauge"] .gauge .text .value {
       text-align: center;
       font-size: 200%; }
@@ -806,6 +807,38 @@ main {
     left: 0;
     background: rgba(255, 255, 255, 0.5);
     padding: 0.2em; }
+
+.grid-stack-item[ioty-type="heartBeat"] .heartBeat {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+.grid-stack-item[ioty-type="heartBeat"] .indicator {
+  position: relative;
+  width: 80%;
+  height: 80%;
+  background: white;
+  margin: auto;
+  border-radius: 10px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; }
+  .grid-stack-item[ioty-type="heartBeat"] .indicator img {
+    max-width: 60%;
+    max-height: 60%;
+    position: absolute;
+    top: 0;
+    left: auto; }
+  .grid-stack-item[ioty-type="heartBeat"] .indicator .red {
+    display: none; }
+  .grid-stack-item[ioty-type="heartBeat"] .indicator .label {
+    position: absolute;
+    bottom: 0; }
+.grid-stack-item[ioty-type="heartBeat"] .indicator.flash .red {
+  display: block; }
 
 .configuration {
   padding: 0.5em 0em; }
