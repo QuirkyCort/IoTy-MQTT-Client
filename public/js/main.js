@@ -681,19 +681,21 @@ var main = new function() {
           break;
         }
       }
-      let ele = self.grid.addWidget(content, {
-        x: widget.x,
-        y: widget.y,
-        w: widget.w,
-        h: widget.h
-      });
+      if (content) {
+        let ele = self.grid.addWidget(content, {
+          x: widget.x,
+          y: widget.y,
+          w: widget.w,
+          h: widget.h
+        });
 
-      ele.classList.remove('newWidget');
-      await attachIotyWidget(ele);
-      for (let name in widget.settings) {
-        ele.widget.setSetting(name, widget.settings[name]);
+        ele.classList.remove('newWidget');
+        await attachIotyWidget(ele);
+        for (let name in widget.settings) {
+          ele.widget.setSetting(name, widget.settings[name]);
+        }
+        ele.widget.processSettings();
       }
-      ele.widget.processSettings();
     }
     self.disableAddWidgetEvent = false;
 
