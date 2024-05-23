@@ -227,6 +227,7 @@ var main = new function() {
   this.initGridStack = function() {
     self.grid = GridStack.init({
       float: true,
+      minRow: 1,
       cellHeight: 'initial',
       disableOneColumnMode: true,
       acceptWidgets: true,
