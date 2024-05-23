@@ -52,7 +52,7 @@ var genDialog = new function() {
 
   this.text = function(setting) {
     let $div = $('<div class="configuration"></div>');
-    let $textBox = $('<div class="text"><input type="text"></div>');
+    let $textBox = $('<div class="text"><input type="text" autocapitalize="off"></div>');
     let $input = $textBox.find('input');
     $input.val(setting.value);
 
