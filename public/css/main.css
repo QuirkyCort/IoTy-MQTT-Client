@@ -703,6 +703,20 @@ main {
 .grid-stack-item[ioty-type="image"] img.hide {
   display: none; }
 
+.grid-stack-item[ioty-type="rawImage"] .rawImage {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center; }
+.grid-stack-item[ioty-type="rawImage"] canvas {
+  height: 100%;
+  width: 100%;
+  object-fit: contain; }
+.grid-stack-item[ioty-type="rawImage"] canvas.hide {
+  visibility: hidden; }
+
 .grid-stack-item[ioty-type="map"] .map {
   position: relative;
   height: 100%;

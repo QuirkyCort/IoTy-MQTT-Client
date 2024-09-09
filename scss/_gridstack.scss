@@ -601,6 +601,27 @@ main {
   }
 }
 
+.grid-stack-item[ioty-type="rawImage"] {
+  .rawImage {
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+  }
+
+  canvas {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+  }
+
+  canvas.hide {
+    visibility: hidden;
+  }
+}
+
 .grid-stack-item[ioty-type="map"] {
   .map {
     position: relative;

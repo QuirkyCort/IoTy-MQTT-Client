@@ -2088,7 +2088,7 @@ class IotyImage extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The image widget will play an image. You can hide, show, or change the image file via MQTT.',
+        value: 'The image widget will display an image. You can hide, show, or change the image file via MQTT.',
         save: false
       },
       {
@@ -2182,6 +2182,362 @@ class IotyImage extends IotyWidget {
     image.src = URL.createObjectURL(
       new Blob([payload])
     );
+  }
+}
+
+class IotyRawImage extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="rawImage">' +
+        '<canvas width="100" height="100"></canvas>' +
+        '<img class="placeholder" src="images/rawImage_placeholder.png">' +
+      '</div>';
+    this.options.type = 'rawImage';
+    this.widgetName = '#widget-rawImage#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The raw image widget will display raw pixel data as an image.',
+        save: false
+      },
+      {
+        name: 'dataTopic',
+        title: 'Data Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish raw pixel data (bytes) to this topic for display.',
+        save: true
+      },
+      {
+        name: 'controlTopic',
+        title: 'Control Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish to this topic to control the image display. Use keywords: "show", "hide", or "toggle". Additional keywords are available for the below options.',
+        save: true
+      },
+      {
+        name: 'width',
+        title: 'Width of the Image',
+        type: 'text',
+        value: '8',
+        help: 'This can also be set via the control topic using keyword "width X" where X is the width.',
+        save: true
+      },
+      {
+        name: 'height',
+        title: 'Height of the Image',
+        type: 'text',
+        value: '8',
+        help: 'This can also be set via the control topic using keyword "height X" where X is the height.',
+        save: true
+      },
+      {
+        name: 'depth',
+        title: 'Color Depth of the Image',
+        type: 'select',
+        options: [
+          ['Grayscale (8 bits)', 'gray8'],
+          ['RGB (16 bits, Big Endian)', 'rgb16BE'],
+          ['RGB (16 bits, Little Endian)', 'rgb16LE'],
+          ['RGB (24 bits)', 'rgb24'],
+          ['False Color (8 bits, Iron Palette)', 'falseColorIron8'],
+        ],
+        value: 'gray8',
+        help: 'This can also be set via the control topic using keyword "depth X". Valid X are "gray8", "rgb16BE", "rgb16LE", "rgb24", "falseColorIron8".',
+        save: true
+      },
+      {
+        name: 'scaling',
+        title: 'Scaling Method',
+        type: 'select',
+        options: [
+          ['Nearest Neighbour', 'nearestNeighbour'],
+          ['Bilinear', 'bilinear'],
+        ],
+        value: 'bilinear',
+        help: 'This can also be set via the control topic using keyword "scaling X". Valid X are "nearestNeighbour", "bilinear".',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+
+    let canvas = this.element.querySelector('canvas');
+    let resizeObserver = new ResizeObserver(this.canvasResize.bind(this));
+    resizeObserver.observe(canvas);
+  }
+
+  processSettings() {
+    super.processSettings();
+
+    this.width = Number(this.getSetting('width'));
+    this.height = Number(this.getSetting('height'));
+    this.depth = this.getSetting('depth');
+    this.scaling = this.getSetting('scaling');
+
+    this.topics = {};
+    for (let topic of ['controlTopic', 'dataTopic']) {
+      this.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+  }
+
+  canvasResize(entries) {
+    for (let entry of entries) {
+      let canvas = entry.target;
+      let imageWidth = this.width;
+      let imageHeight = this.height;
+      let clientWidth = canvas.clientWidth;
+      let clientHeight = canvas.clientHeight;
+
+      if (clientWidth / clientHeight > imageWidth / imageHeight) {
+        canvas.width = clientHeight * imageWidth / imageHeight;
+        canvas.height = clientHeight;
+      } else {
+        canvas.width = clientWidth;
+        canvas.height = clientWidth * imageHeight / imageWidth
+      }
+    }
+  }
+
+  onMessageArrived(payload, topic) {
+    if (topic == this.topics['controlTopic']) {
+      this.onMessageArrivedControl(payload);
+    } else if (topic == this.topics['dataTopic']) {
+      this.onMessageArrivedData(payload);
+    }
+  }
+
+  onMessageArrivedControl(payload) {
+    let canvas = this.element.querySelector('canvas');
+    if (payload == 'show') {
+      canvas.classList.remove('hide');
+    } else if (payload == 'hide') {
+      canvas.classList.add('hide');
+    } else if (payload == 'toggle') {
+      canvas.classList.toggle('hide');
+    } else {
+      let command = payload.split(' ');
+      if (command[0] == 'width' && command.length == 2) {
+        this.width = Number(command[1]);
+      } else if (command[0] == 'height' && command.length == 2) {
+        this.height = Number(command[1]);
+      } else if (command[0] == 'depth' && command.length == 2) {
+        this.depth = command[1];
+      } else if (command[0] == 'scaling' && command.length == 2) {
+        this.scaling = command[1];
+      }
+    }
+  }
+
+  gray8ToPixel(image, index) {
+    let out = new Uint8Array(4);
+    out[0] = image[index];
+    out[1] = image[index];
+    out[2] = image[index];
+    out[3] = 255;
+
+    return out;
+  }
+
+  falseColor8ToPixel(palette, image, index) {
+    let out = new Uint8Array(4);
+
+    var x = image[index] / 255;
+    let i;
+    for (i=0; i<palette.length; i++) {
+      if (x <= palette[i][0]) {
+        break;
+      }
+    }
+
+    let xFloor = Math.max(i-1, 0);
+    let xCeil = Math.min(i, palette.length);
+
+    if (xFloor == xCeil) {
+      for (let i=0; i<3; i++) {
+        out[i] = palette[xFloor][i];
+      }
+    } else {
+      for (let i=0; i<3; i++) {
+        let prev = palette[xFloor];
+        let next = palette[xCeil];
+        let range = next[0] - prev[0];
+        out[i] = (prev[1][i] * (next[0] - x) + next[1][i] * (x - prev[0])) / range;
+      }
+    }
+
+    out[3] = 255;
+
+    return out;
+  }
+
+  falseColorIron8ToPixel(image, index) {
+    let palette = [
+      [0.0, [0x00, 0x00, 0x0A]],
+      [0.25, [0x91, 0x00, 0x9C]],
+      [0.5, [0xE6, 0x46, 0x16]],
+      [0.75, [0xFE, 0xB4, 0x00]],
+      [1.0, [0xFF, 0xFF, 0xF6]]
+    ]
+
+    return this.falseColor8ToPixel(palette, image, index);
+  }
+
+  rgb16LEToPixel(image, index) {
+    let out = new Uint8Array(4);
+    out[0] = image[index*2+1] & 0b11111000;
+    out[1] = (image[index*2+1] & 0b00000111) << 5 | (image[index*2] & 0b11100000) >> 5;
+    out[2] = (image[index*2] & 0b00011111) << 3;
+    out[3] = 255;
+
+    return out;
+  }
+
+  rgb16BEToPixel(image, index) {
+    let out = new Uint8Array(4);
+    out[0] = image[index*2] & 0b11111000;
+    out[1] = (image[index*2] & 0b00000111) << 5 | (image[index*2+1] & 0b11100000) >> 5;
+    out[2] = (image[index*2+1] & 0b00011111) << 3;
+    out[3] = 255;
+
+    return out;
+  }
+
+  rgb24ToPixel(image, index) {
+    let out = new Uint8Array(4);
+    out[0] = image[index*3];
+    out[1] = image[index*3+1]
+    out[2] = image[index*3+2];
+    out[3] = 255;
+
+    return out;
+  }
+
+  nearestNeighbourScale(image, depth) {
+    let canvas = this.element.querySelector('canvas');
+
+    const iw = this.width;
+    const ih = this.height;
+    const ow = canvas.width;
+    const oh = canvas.height;
+
+    let ctx = canvas.getContext("2d");
+    let imageData = ctx.createImageData(ow, oh);
+
+    for (let y=0; y<oh; y++) {
+      for (let x=0; x<ow; x++) {
+        let oi = y * ow + x;
+        let ii = Math.floor(y * ih / oh) * iw + Math.floor(x * iw / ow);
+
+        let pixel;
+        if (depth == 'gray8') {
+          pixel = this.gray8ToPixel(image, ii);
+        } else if (depth == 'falseColorIron8') {
+          pixel = this.falseColorIron8ToPixel(image, ii);
+        } else if (depth == 'rgb16LE') {
+          pixel = this.rgb16LEToPixel(image, ii);
+        } else if (depth == 'rgb16BE') {
+          pixel = this.rgb16BEToPixel(image, ii);
+        } else if (depth == 'rgb24') {
+          pixel = this.rgb24ToPixel(image, ii);
+        }
+
+        for (let i=0; i<4; i++) {
+          imageData.data[4 * oi + i] = pixel[i];
+        }
+      }
+    }
+
+    return imageData;
+  }
+
+  bilinearScale(image, depth) {
+    let canvas = this.element.querySelector('canvas');
+
+    const iw = this.width;
+    const ih = this.height;
+    const ow = canvas.width;
+    const oh = canvas.height;
+
+    let ctx = canvas.getContext("2d");
+    let imageData = ctx.createImageData(ow, oh);
+
+    for (let y=0; y<oh; y++) {
+      for (let x=0; x<ow; x++) {
+        let oi = y * ow + x;
+        let ix = x * (iw-1) / (ow-1);
+        let iy = y * (ih-1) / (oh-1);
+        let xFloor = Math.floor(ix);
+        let xCeil = Math.min(Math.ceil(ix), iw - 1);
+        let yFloor = Math.floor(iy);
+        let yCeil = Math.min(Math.ceil(iy), ih - 1);
+
+        let p0, p1, p2, p3;
+        let pixel = new Uint8Array(4);
+        if (depth == 'gray8') {
+          p0 = this.gray8ToPixel(image, yFloor * iw + xFloor);
+          p1 = this.gray8ToPixel(image, yFloor * iw + xCeil);
+          p2 = this.gray8ToPixel(image, yCeil * iw + xFloor);
+          p3 = this.gray8ToPixel(image, yCeil * iw + xCeil);
+        } else if (depth == 'falseColorIron8') {
+          p0 = this.falseColorIron8ToPixel(image, yFloor * iw + xFloor);
+          p1 = this.falseColorIron8ToPixel(image, yFloor * iw + xCeil);
+          p2 = this.falseColorIron8ToPixel(image, yCeil * iw + xFloor);
+          p3 = this.falseColorIron8ToPixel(image, yCeil * iw + xCeil);
+        } else if (depth == 'rgb16LE') {
+          p0 = this.rgb16LEToPixel(image, yFloor * iw + xFloor);
+          p1 = this.rgb16LEToPixel(image, yFloor * iw + xCeil);
+          p2 = this.rgb16LEToPixel(image, yCeil * iw + xFloor);
+          p3 = this.rgb16LEToPixel(image, yCeil * iw + xCeil);
+        } else if (depth == 'rgb16BE') {
+          p0 = this.rgb16BEToPixel(image, yFloor * iw + xFloor);
+          p1 = this.rgb16BEToPixel(image, yFloor * iw + xCeil);
+          p2 = this.rgb16BEToPixel(image, yCeil * iw + xFloor);
+          p3 = this.rgb16BEToPixel(image, yCeil * iw + xCeil);
+        } else if (depth == 'rgb24') {
+          p0 = this.rgb24ToPixel(image, yFloor * iw + xFloor);
+          p1 = this.rgb24ToPixel(image, yFloor * iw + xCeil);
+          p2 = this.rgb24ToPixel(image, yCeil * iw + xFloor);
+          p3 = this.rgb24ToPixel(image, yCeil * iw + xCeil);
+        }
+
+        for (let i=0; i<4; i++) {
+          let q1 = p0[i] * (xCeil - ix) + p1[i] * (ix - xFloor)
+          let q2 = p2[i] * (xCeil - ix) + p3[i] * (ix - xFloor)
+          pixel[i] = Math.round(q1 * (yCeil - iy) + q2 * (iy - yFloor))
+        }
+
+        for (let i=0; i<4; i++) {
+          imageData.data[4 * oi + i] = pixel[i];
+        }
+      }
+    }
+
+    return imageData;
+  }
+
+  onMessageArrivedData(payload) {
+    let scaledImage;
+    if (this.scaling == 'nearestNeighbour') {
+      scaledImage = this.nearestNeighbourScale(payload, this.depth);
+    } else if (this.scaling == 'bilinear') {
+      scaledImage = this.bilinearScale(payload, this.depth);
+    }
+
+    let canvas = this.element.querySelector('canvas');
+    let ctx = canvas.getContext("2d");
+    ctx.putImageData(scaledImage, 0, 0);
   }
 }
 
@@ -3493,6 +3849,7 @@ IOTY_WIDGETS = [
   { type: 'video', widgetClass: IotyVideo},
   { type: 'audio', widgetClass: IotyAudio},
   { type: 'image', widgetClass: IotyImage},
+  { type: 'rawImage', widgetClass: IotyRawImage},
   { type: 'map', widgetClass: IotyMap},
   { type: 'tts', widgetClass: IotyTTS},
   { type: 'speech', widgetClass: IotySpeech},

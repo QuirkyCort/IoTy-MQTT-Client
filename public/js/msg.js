@@ -74,6 +74,9 @@ let MSGS = {
   '#widget-image#': {
     en: 'Image',
   },
+  '#widget-rawImage#': {
+    en: 'Raw Image',
+  },
   '#widget-map#': {
     en: 'Map',
   },
