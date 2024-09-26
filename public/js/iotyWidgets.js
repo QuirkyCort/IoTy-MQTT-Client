@@ -3844,7 +3844,28 @@ class IotyGraphXY extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The Graph XY widget will draw an XY graph from received data.',
+        value: 'The Graph XY widget will draw an XY graph from received data. Data should be in JSON and of the following format.',
+        save: false
+      },
+      {
+        name: 'formatExample1',
+        title: 'Data Format Example (Points only, using default coordinate system)',
+        type: 'label',
+        value: '[[x1, y1], [x2, y2], [x3, y3]]',
+        save: false
+      },
+      {
+        name: 'formatExample2',
+        title: 'Data Format Example (Points only, mix of cartesian and polar coordinates)',
+        type: 'label',
+        value: '[[x1, y1], [\"point\", [x2, y2]], [\"pointDegree\", [θ1, r1]]]',
+        save: false
+      },
+      {
+        name: 'formatExample3',
+        title: 'Data Format Example (Points and Lines)',
+        type: 'label',
+        value: '[[x1, y1], [\"line\", [x1, y1, x2, y2]], [\"lineDegree\", [θ1, r1, θ2, r2]]]',
         save: false
       },
       {
@@ -3852,7 +3873,7 @@ class IotyGraphXY extends IotyWidget {
         title: 'Data Topic',
         type: 'text',
         value: '',
-        help: 'Publish JSON to this topic for display. It should be in this format: "[[x1, y1], [x2, y2], [x3, y3]]"',
+        help: 'Publish JSON to this topic for display.',
         save: true
       },
       {
@@ -3990,8 +4011,30 @@ class IotyGraphXY extends IotyWidget {
     this.onMessageArrivedData(payload);
   }
 
+  canvasX(ctx, x) {
+    if (this.type == 'cartesian') {
+      x = (x - this.minX) / this.width * ctx.canvas.width;
+    } else if (this.type == 'polarDegree' || this.type == 'polarRadian') {
+      x = x / this.width * ctx.canvas.width + ctx.canvas.width / 2;
+    }
+
+    return x;
+  }
+
+  canvasY(ctx, y) {
+    if (this.type == 'cartesian') {
+      y = (y - this.minY) / this.height * ctx.canvas.height;
+    } else if (this.type == 'polarDegree' || this.type == 'polarRadian') {
+      y = y / this.height * ctx.canvas.height + ctx.canvas.height / 2;
+    }
+    y = ctx.canvas.height - y; // flip Y
+
+    return y;
+  }
+
   drawGrid(ctx) {
     const canvas = ctx.canvas;
+    ctx.lineWidth = 1;
     ctx.strokeStyle = "rgb(200 200 255)";
 
     if (this.axisType == 'drawXYGrid') {
@@ -4001,15 +4044,14 @@ class IotyGraphXY extends IotyWidget {
         let startX = Math.ceil(this.minX / this.gridSize) * this.gridSize
         let endX = this.minX + this.width;
         for (let x = startX; x < endX; x += this.gridSize) {
-          let canvasX = (x - this.minX) / this.width * canvas.width;
+          let canvasX = this.canvasX(ctx, x);
           ctx.moveTo(canvasX, 0);
           ctx.lineTo(canvasX, canvas.height);
         }
         let startY = Math.ceil(this.minY / this.gridSize) * this.gridSize
         let endY = this.minY + this.height;
         for (let y = startY; y < endY; y += this.gridSize) {
-          let canvasY = (y - this.minY) / this.height * canvas.width;
-          canvasY = canvas.height - canvasY; // flip Y
+          let canvasY = this.canvasY(ctx, y);
           ctx.moveTo(0, canvasY);
           ctx.lineTo(canvas.width, canvasY);
         }
@@ -4033,15 +4075,15 @@ class IotyGraphXY extends IotyWidget {
 
   drawAxis(ctx) {
     const canvas = ctx.canvas;
+    ctx.lineWidth = 1;
     ctx.strokeStyle = "rgb(100 100 255)";
 
     if (this.axisType == 'drawXY' || this.axisType == 'drawXYGrid') {
       let x,y;
 
       if (this.type == 'cartesian') {
-        x = -this.minX / this.width * canvas.width;
-        y = -this.minY / this.height * canvas.height;
-        y = canvas.height - y; // flip Y
+        x = this.canvasX(ctx, 0);
+        y = this.canvasY(ctx, 0);
       } else if (this.type == 'polarDegree' || this.type == 'polarRadian') {
         x = canvas.width / 2;
         y = canvas.height / 2;
@@ -4056,54 +4098,92 @@ class IotyGraphXY extends IotyWidget {
     }
   }
 
-  drawCartesian(ctx, point) {
+  drawPoint(ctx, point) {
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "rgb(255 0 0)";
     const rectSize = this.pointSize;
-    const canvas = ctx.canvas;
 
-    let x = (point[0] - this.minX) / this.width * canvas.width - rectSize / 2;
-    let y = (point[1] - this.minY) / this.height * canvas.height - rectSize / 2;
-    y = canvas.height - y - rectSize; // flip Y
+    let x = this.canvasX(ctx, point[0]) - rectSize / 2;
+    let y = this.canvasY(ctx, point[1]) - rectSize / 2;
 
     ctx.fillRect(x, y, rectSize, rectSize);
   }
 
-  drawPolarDegree(ctx, point) {
-    this.drawPolarRadian(ctx, [point[0] / 180 * Math.PI, point[1]]);
+  drawPointPolarDegree(ctx, point) {
+    this.drawPointPolarRadian(ctx, [point[0] / 180 * Math.PI, point[1]]);
   }
 
-  drawPolarRadian(ctx, point) {
+  drawPointPolarRadian(ctx, point) {
     const rectSize = this.pointSize;
-    const canvas = ctx.canvas;
 
     let x = Math.cos(point[0]) * point[1];
     let y = Math.sin(point[0]) * point[1];
 
-    x = x / this.width * canvas.width + canvas.width / 2 - rectSize / 2;
-    y = y / this.height * canvas.height + canvas.height / 2 - rectSize / 2;
-    y = canvas.height - y - rectSize; // flip Y
+    this.drawPoint(ctx, [x, y]);
+  }
 
-    ctx.fillRect(x, y, rectSize, rectSize);
+  drawPointAuto(ctx, xy) {
+    if (this.type == 'cartesian') {
+      this.drawPoint(ctx, xy);
+    } else if (this.type == 'polarDegree') {
+      this.drawPointPolarDegree(ctx, xy);
+    } else if (this.type == 'polarRadian') {
+      this.drawPointPolarRadian(ctx, xy);
+    }
+  }
+
+  drawLinePolarDegree(ctx, pos) {
+    this.drawLinePolarRadian(ctx, [pos[0] / 180 * Math.PI, pos[1], pos[2] / 180 * Math.PI, pos[3]])
+  }
+
+  drawLinePolarRadian(ctx, pos) {
+    let x1 =  Math.cos(pos[0]) * pos[1];
+    let y1 =  Math.sin(pos[0]) * pos[1];
+    let x2 =  Math.cos(pos[2]) * pos[3];
+    let y2 =  Math.sin(pos[2]) * pos[3];
+
+    this.drawLine(ctx, [x1, y1, x2, y2])
+  }
+
+  drawLine(ctx, pos) {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgb(0 255 0)";
+
+    ctx.beginPath();
+    ctx.moveTo(this.canvasX(ctx, pos[0]), this.canvasY(ctx, pos[1]));
+    ctx.lineTo(this.canvasX(ctx, pos[2]), this.canvasY(ctx, pos[3]));
+    ctx.stroke();
+  }
+
+  drawCommand(ctx, command) {
+    if (command[0] == 'line') {
+      this.drawLine(ctx, command[1]);
+    } else if (command[0] == 'lineDegree') {
+      this.drawLinePolarDegree(ctx, command[1]);
+    } else if (command[0] == 'lineRadian') {
+      this.drawLinePolarRadian(ctx, command[1]);
+    } else if (command[0] == 'point') {
+      this.drawPoint(ctx, command[1]);
+    } else if (command[0] == 'pointDegree') {
+      this.drawPointPolarDegree(ctx, command[1]);
+    } else if (command[0] == 'pointRadian') {
+      this.drawPointPolarRadian(ctx, command[1]);
+    } else {
+      this.drawPointAuto(ctx, command);
+    }
   }
 
   onMessageArrivedData(payload) {
     let canvas = this.element.querySelector('canvas');
     let ctx = canvas.getContext("2d");
 
-    let points = JSON.parse(payload);
+    let commands = JSON.parse(payload);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this.drawGrid(ctx);
     this.drawAxis(ctx);
 
-    ctx.fillStyle = "rgb(255 0 0)";
-
-    for (let point of points) {
-      if (this.type == 'cartesian') {
-        this.drawCartesian(ctx, point);
-      } else if (this.type == 'polarDegree') {
-        this.drawPolarDegree(ctx, point);
-      } else if (this.type == 'polarRadian') {
-        this.drawPolarRadian(ctx, point);
-      }
+    for (let command of commands) {
+      this.drawCommand(ctx, command);
     }
   }
 }
