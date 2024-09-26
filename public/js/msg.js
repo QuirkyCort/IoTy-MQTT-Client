@@ -98,6 +98,9 @@ let MSGS = {
   '#widget-heartbeat#': {
     en: 'Heartbeat',
   },
+  '#widget-graphXY#': {
+    en: 'Graph (XY)',
+  },
 };
 let MSGS_KEYS = Object.keys(MSGS);
 
