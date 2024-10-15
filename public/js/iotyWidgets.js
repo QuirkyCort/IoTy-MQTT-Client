@@ -2123,6 +2123,14 @@ class IotyImage extends IotyWidget {
         help: 'Publish image data to this topic for display. This will override the image URL.',
         save: true
       },
+      {
+        name: 'scale',
+        title: 'Scale image to fit',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the image will be scaled up to fill the entire widget without changing aspect ratio.',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -2139,7 +2147,13 @@ class IotyImage extends IotyWidget {
     if (this.getSetting('url').trim() != '') {
       image.src = this.getSetting('url');
     } else {
-      image.src = '';
+      image.src = 'images/image_placeholder.png';
+    }
+
+    if (this.getSetting('scale') == 'true') {
+      image.classList.add('scale');
+    } else {
+      image.classList.remove('scale');
     }
 
     this.topics = {};

@@ -596,6 +596,12 @@ main {
     max-width: 100%;
   }
 
+  img.scale {
+    object-fit: contain;
+    height: 100%;
+    width: 100%;
+  }
+
   img.hide {
     display: none;
   }
