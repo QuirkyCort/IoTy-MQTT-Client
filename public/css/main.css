@@ -634,6 +634,33 @@ main {
     top: 0;
     left: 0; }
 
+.grid-stack-item[ioty-type="direction"] .direction {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center; }
+  .grid-stack-item[ioty-type="direction"] .direction .wrapper {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: 1/1; }
+  .grid-stack-item[ioty-type="direction"] .direction img {
+    max-width: 100%;
+    max-height: 100%;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none; }
+  .grid-stack-item[ioty-type="direction"] .direction .text {
+    position: absolute;
+    text-align: center; }
+    .grid-stack-item[ioty-type="direction"] .direction .text .value {
+      text-align: center;
+      font-size: 200%; }
+
 .grid-stack-item[ioty-type="video"] .video {
   width: 100%;
   height: 100%;

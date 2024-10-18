@@ -1769,6 +1769,191 @@ class IotyJoy extends IotyWidget {
   }
 }
 
+class IotyDirection extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="direction">' +
+        '<div class="wrapper">' +
+          '<img class="indicator" src="images/directionIndicator.svg" draggable="false">' +
+        '</div>' +
+        '<div class="text">' +
+          '<div class="value">0</div>' +
+          '<div class="label">Dir</div>' +
+        '</div>' +
+      '</div>';
+    this.options.type = 'direction';
+    this.widgetName = '#widget-direction#';
+    this.theta = 0;
+    this.thetaConverted = 0;
+
+    this.lastPayload = null;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The direction widget will publish its direction to the specified topic when changed.',
+        save: false
+      },
+      {
+        name: 'valueType',
+        title: 'Value Type',
+        type: 'select',
+        options: [
+          ['Heading (Degrees, North is 0, Clockwise Positive)', 'heading'],
+          ['Math Degrees (East is 0, Counterclockwise Positive)', 'mathDeg'],
+          ['Math Radians (East is 0, Counterclockwise Positive)', 'mathRad']
+        ],
+        value: 'heading',
+        help: 'The format to publish the result in.',
+        save: true
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to publish to.',
+        save: true
+      },
+      {
+        name: 'onChange',
+        title: 'Send value on change',
+        type: 'check',
+        value: 'false',
+        help: 'Immediately send the value when changed. If false, the value will only be sent on release.',
+        save: true
+      },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'Dir',
+        help: 'Label for widget.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+
+    this.timer = setInterval(this.timerPublish.bind(this), 100);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+
+    let img = ele.querySelector('.wrapper');
+    img.addEventListener('dragstart', function() { return false; })
+    img.addEventListener('pointerdown', this.pointerdown.bind(this));
+    img.addEventListener('pointermove', this.pointermove.bind(this));
+    img.addEventListener('pointerup', this.pointerup.bind(this));
+    img.addEventListener('contextmenu', this.disableEvent);
+  }
+
+  processSettings() {
+    super.processSettings();
+
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
+  }
+
+  pointerdown(evt) {
+    if (main.mode == main.MODE_RUN) {
+      let x = 2 * (evt.offsetX / evt.target.offsetWidth - 0.5);
+      let y = 2 * (evt.offsetY / evt.target.offsetHeight - 0.5);
+
+      this.theta = Math.atan2(y, x);
+
+      let indicator = this.element.querySelector('.indicator');
+      let currentAngle = Number(getComputedStyle(indicator).rotate.slice(0, -3));
+      if (isNaN(currentAngle)) {
+        currentAngle = 0;
+      }
+      this.theta = (currentAngle / 180 * Math.PI + this.theta);
+
+      this.convertAngle();
+      this.turnIndicator();
+    }
+  }
+
+  pointermove(evt) {
+    if (evt.buttons != 0) {
+      this.pointerdown(evt);
+    }
+  }
+
+  pointerup(evt) {
+    if (main.mode == main.MODE_RUN) {
+      if (this.getSetting('onChange') != 'true') {
+        this.publish()
+      }
+    }
+  }
+
+  convertAngle() {
+    if (this.getSetting('valueType') == 'heading') {
+      this.thetaConverted = this.theta / Math.PI * 180 + 90;
+      this.thetaConverted %= 360;
+      if (this.thetaConverted < 0) {
+        this.thetaConverted += 360;
+      }
+    } else if (this.getSetting('valueType') == 'mathDeg') {
+      this.thetaConverted = -this.theta / Math.PI * 180;
+      this.thetaConverted %= 360;
+      if (this.thetaConverted < -180) {
+        this.thetaConverted += 360;
+      }
+      if (this.thetaConverted > 180) {
+        this.thetaConverted -= 360;
+      }
+    } else if (this.getSetting('valueType') == 'mathRad') {
+      this.thetaConverted = -this.theta;
+      this.thetaConverted %= Math.PI * 2;
+      if (this.thetaConverted < -Math.PI) {
+        this.thetaConverted += Math.PI * 2;
+      }
+      if (this.thetaConverted > Math.PI) {
+        this.thetaConverted -= Math.PI * 2;
+      }
+    }
+    console.log(this.thetaConverted);
+  }
+
+  turnIndicator() {
+    let indicator = this.element.querySelector('.indicator');
+    let angle = this.theta + Math.PI / 2;
+    angle %= Math.PI * 2;
+    indicator.style.rotate = angle + 'rad';
+    let value = this.element.querySelector('.value');
+    if (this.getSetting('valueType') == 'mathRad') {
+      value.innerText = Math.round(this.thetaConverted * 100) / 100;
+    } else {
+      value.innerText = Math.round(this.thetaConverted);
+    }
+  }
+
+  timerPublish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    if (this.getSetting('onChange') == 'false') {
+      return;
+    }
+    if (this.thetaConverted != this.lastPayload) {
+      this.publish();
+      this.lastPayload = this.thetaConverted;
+    }
+  }
+
+  publish() {
+    if (main.mode != main.MODE_RUN) {
+      return;
+    }
+    main.publish(this.getSetting('topic'), String(this.thetaConverted));
+  }
+}
+
 class IotyVideo extends IotyWidget {
   constructor() {
     super();
@@ -3874,6 +4059,14 @@ class IotyECG extends IotyWidget {
         help: 'Time in seconds for the indicator to fade to gray.',
         save: true
       },
+      {
+        name: 'label',
+        title: 'Label',
+        type: 'text',
+        value: 'ECG',
+        help: 'Label for widget.',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -3893,6 +4086,9 @@ class IotyECG extends IotyWidget {
       clearInterval(this.timer);
     }
     this.timer = setInterval(this.updateIndicator.bind(this), 200);
+
+    let label = this.element.querySelector('.label');
+    label.innerText = this.getSetting('label');
   }
 
   onMessageArrived(payload) {
@@ -4375,6 +4571,7 @@ IOTY_WIDGETS = [
   { type: 'select', widgetClass: IotySelect},
   { type: 'color', widgetClass: IotyColor},
   { type: 'joy', widgetClass: IotyJoy},
+  { type: 'direction', widgetClass: IotyDirection},
   { type: 'heartbeat', widgetClass: IotyHeartbeat},
   { type: 'ecg', widgetClass: IotyECG},
   { type: 'label', widgetClass: IotyLabel},
