@@ -4281,6 +4281,90 @@ class IotyGraphXY extends IotyWidget {
   }
 }
 
+class IotyObjectDetector extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="objectDetector">' +
+        '<img src="images/objectDetector.jpg">' +
+        '<img class="hide" src="">' +
+      '</div>';
+    this.options.type = 'objectDetector';
+    this.widgetName = '#widget-objectDetector#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The object detector widget will receive image data, perform object detection on it, then publish the results.',
+        save: false
+      },
+      {
+        name: 'objectList',
+        title: 'Trained Classes',
+        type: 'html',
+        value:
+        '<p>Object detector can detect 80 different objects. See <a href="https://github.com/amikelive/coco-labels/blob/master/coco-labels-2014_2017.txt" target="_blank">list of available classes</a>.</p>',
+        save: false
+      },
+      {
+        name: 'dataTopic',
+        title: 'Data Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish image data to this topic. Images can be in any format supported by the browser.',
+        save: true
+      },
+      {
+        name: 'resultsTopic',
+        title: 'Results Topic',
+        type: 'text',
+        value: '',
+        help: 'Results of image detection will be published to this topic.',
+        save: true
+      },
+      {
+        name: 'resultsGuide',
+        title: 'Results Format',
+        type: 'html',
+        value:
+        '<p>Results is a list in JSON format. Each item in the list contains:</p>' +
+        '<ul>' +
+          '<li>name: (string) Name of the class</li>' +
+          '<li>score: (float) Confidence level of the detection</li>' +
+          '<li>x, y, w, h: (int) Bounding box</li>' +
+        '</ul>',
+        save: false
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    super.processSettings();
+
+    this.subscriptions.push(this.getSetting('dataTopic'));
+  }
+
+  onMessageArrived(payload, topic) {
+    let image = this.element.querySelector('img.hide');
+    image.onload = this.detectObject.bind(this);
+    image.src = URL.createObjectURL(
+      new Blob([payload])
+    );
+  }
+
+  async detectObject() {
+    let image = this.element.querySelector('img.hide');
+    let result = await window.detectObject(image);
+    main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
+  }
+}
 
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
@@ -4309,6 +4393,7 @@ IOTY_WIDGETS = [
   { type: 'speech', widgetClass: IotySpeech},
   { type: 'chart', widgetClass: IotyChart},
   { type: 'imageTM', widgetClass: IotyImageTM},
+  { type: 'objectDetector', widgetClass: IotyObjectDetector},
   { type: 'graphXY', widgetClass: IotyGraphXY},
 ];
 

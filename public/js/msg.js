@@ -95,6 +95,9 @@ let MSGS = {
   '#widget-imageTM#': {
     en: 'Teachable Machine (Image)',
   },
+  '#widget-objectDetector#': {
+    en: 'Object Detector',
+  },
   '#widget-heartbeat#': {
     en: 'Heartbeat',
   },

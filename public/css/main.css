@@ -826,6 +826,18 @@ main {
     background: rgba(255, 255, 255, 0.5);
     padding: 0.2em; }
 
+.grid-stack-item[ioty-type="objectDetector"] .objectDetector {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+.grid-stack-item[ioty-type="objectDetector"] img {
+  max-height: 100%;
+  max-width: 100%; }
+.grid-stack-item[ioty-type="objectDetector"] .hide {
+  display: none; }
+
 .grid-stack-item[ioty-type="heartbeat"] .heartbeat {
   width: 100%;
   height: 100%;
