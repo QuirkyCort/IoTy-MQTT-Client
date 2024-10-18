@@ -3842,6 +3842,85 @@ class IotyHeartbeat extends IotyWidget {
   }
 }
 
+class IotyECG extends IotyWidget {
+  constructor() {
+    super();
+    this.content = '<div class="ecg"><div class="indicator"><img class="dead" src="images/ecg_dead.svg"><img class="live hide" src="images/ecg_live.svg"><div class="label">ECG</div></div></div>'
+    this.options.type = 'ecg';
+    this.widgetName = '#widget-ecg#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The ECG widget will gradually fade to gray over time, but will return to red when it receives any message.',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Topic to subscribe to.',
+        save: true
+      },
+      {
+        name: 'fadeTime',
+        title: 'Fade time',
+        type: 'text',
+        value: '6',
+        help: 'Time in seconds for the indicator to fade to gray.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  attach(ele) {
+    super.attach(ele);
+  }
+
+  processSettings() {
+    super.processSettings();
+
+    this.subscriptions.push(this.getSetting('topic'));
+
+    this.lastMsgTime = 0;
+
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+    this.timer = setInterval(this.updateIndicator.bind(this), 200);
+  }
+
+  onMessageArrived(payload) {
+    this.lastMsgTime = new Date().getTime();
+    this.updateIndicator();
+  }
+
+  updateIndicator() {
+    let liveIndicator = this.element.querySelector('.indicator .live');
+    let deadIndicator = this.element.querySelector('.indicator .dead');
+    let elapsedTime = new Date().getTime() - this.lastMsgTime;
+    let ratio = elapsedTime / 1000 / Number(this.getSetting('fadeTime'));
+    if (ratio > 1) {
+      ratio = 1;
+    }
+
+    if (ratio == 1) {
+      liveIndicator.classList.add('hide');
+      deadIndicator.classList.remove('hide');
+    } else {
+      liveIndicator.classList.remove('hide');
+      deadIndicator.classList.add('hide');
+    }
+
+    liveIndicator.style.filter = 'contrast(' + (1 - ratio) + ')';
+  }
+}
+
 class IotyGraphXY extends IotyWidget {
   constructor() {
     super();
@@ -4213,6 +4292,7 @@ IOTY_WIDGETS = [
   { type: 'color', widgetClass: IotyColor},
   { type: 'joy', widgetClass: IotyJoy},
   { type: 'heartbeat', widgetClass: IotyHeartbeat},
+  { type: 'ecg', widgetClass: IotyECG},
   { type: 'label', widgetClass: IotyLabel},
   { type: 'display', widgetClass: IotyDisplay},
   { type: 'status', widgetClass: IotyStatus},

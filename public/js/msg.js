@@ -98,6 +98,9 @@ let MSGS = {
   '#widget-heartbeat#': {
     en: 'Heartbeat',
   },
+  '#widget-ecg#': {
+    en: 'ECG',
+  },
   '#widget-graphXY#': {
     en: 'Graph (XY)',
   },

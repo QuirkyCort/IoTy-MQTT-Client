@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   height="315"
+   width="342"
+   id="svg195"
+   sodipodi:docname="ecg_live.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview197"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.3809524"
+     inkscape:cx="76.75862"
+     inkscape:cy="240.41379"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="1920"
+     inkscape:window-y="32"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg195" />
+  <defs
+     id="defs189">
+    <style
+       type="text/css"
+       id="style184"><![CDATA[
+    .outline { stroke:none; stroke-width:0 }
+  ]]></style>
+    <g
+       id="heart">
+      <path
+         d="M0 200 v-200 h200      a100,100 90 0,1 0,200     a100,100 90 0,1 -200,0     z"
+         id="path186" />
+    </g>
+  </defs>
+  <desc
+     id="desc191">
+   a nearly perfect heart
+	 made of two arcs and a right angle
+ </desc>
+  <path
+     id="path1019"
+     style="fill:#ff0000;stroke:none;stroke-width:0"
+     d="M 104.97852 28.119141 A 82.499999 82.500001 0 0 0 43.353516 155.48242 L 90.001953 155.48242 L 118.61914 70.119141 L 154.64648 181.57227 L 170.5918 153.95508 L 298.54102 153.95508 A 82.5 82.500002 0 0 0 170.50586 51.96875 A 82.499999 82.500001 0 0 0 104.97852 28.119141 z M 118.35938 118.08594 L 100.79297 170.48242 L 55.673828 170.48242 L 170.50586 285.31445 L 286.86719 168.95508 L 179.25195 168.95508 L 150.75586 218.31055 L 118.35938 118.08594 z " />
+</svg>
