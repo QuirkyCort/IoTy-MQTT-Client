@@ -65,6 +65,9 @@ let MSGS = {
   '#widget-joy#': {
     en: 'Joystick',
   },
+  '#widget-direction#': {
+    en: 'Direction',
+  },
   '#widget-video#': {
     en: 'Video',
   },
