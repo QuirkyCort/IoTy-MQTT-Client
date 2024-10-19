@@ -4553,6 +4553,7 @@ class IotyObjectDetector extends IotyWidget {
     image.src = URL.createObjectURL(
       new Blob([payload])
     );
+    this.flashIndicator()
   }
 
   async detectObject() {
@@ -4560,6 +4561,15 @@ class IotyObjectDetector extends IotyWidget {
     let result = await window.detectObject(image);
     main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
   }
+
+  flashIndicator() {
+    let indicator = this.element.querySelector('img:not(.hide)');
+    indicator.classList.add('flash');
+    setTimeout(function(){
+      indicator.classList.remove('flash');
+    }, 200);
+  }
+
 }
 
 IOTY_WIDGETS = [

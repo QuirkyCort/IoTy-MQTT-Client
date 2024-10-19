@@ -864,6 +864,8 @@ main {
   max-width: 100%; }
 .grid-stack-item[ioty-type="objectDetector"] .hide {
   display: none; }
+.grid-stack-item[ioty-type="objectDetector"] .flash {
+  filter: brightness(1.5); }
 
 .grid-stack-item[ioty-type="heartbeat"] .heartbeat {
   width: 100%;

@@ -837,6 +837,10 @@ main {
   .hide {
     display: none;
   }
+
+  .flash {
+    filter: brightness(1.5);
+  }
 }
 
 .grid-stack-item[ioty-type="heartbeat"] {
