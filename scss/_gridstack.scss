@@ -851,6 +851,27 @@ main {
 
 .grid-stack-item[ioty-type="objectDetector"] {
   .objectDetector {
+    position: relative;
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  video {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  img {
+    max-height: 100%;
+    max-width: 100%;
+  }
+}
+
+.grid-stack-item[ioty-type="remoteObjectDetector"] {
+  .remoteObjectDetector {
     height: calc(100% - 1em);
     width: calc(100% - 1em);
     display: flex;

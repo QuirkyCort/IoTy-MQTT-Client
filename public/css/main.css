@@ -872,17 +872,31 @@ main {
     padding: 0.2em; }
 
 .grid-stack-item[ioty-type="objectDetector"] .objectDetector {
+  position: relative;
   height: calc(100% - 1em);
   width: calc(100% - 1em);
   display: flex;
   justify-content: center;
   align-items: center; }
+.grid-stack-item[ioty-type="objectDetector"] video {
+  max-height: 100%;
+  max-width: 100%; }
 .grid-stack-item[ioty-type="objectDetector"] img {
   max-height: 100%;
   max-width: 100%; }
-.grid-stack-item[ioty-type="objectDetector"] .hide {
+
+.grid-stack-item[ioty-type="remoteObjectDetector"] .remoteObjectDetector {
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+.grid-stack-item[ioty-type="remoteObjectDetector"] img {
+  max-height: 100%;
+  max-width: 100%; }
+.grid-stack-item[ioty-type="remoteObjectDetector"] .hide {
   display: none; }
-.grid-stack-item[ioty-type="objectDetector"] .flash {
+.grid-stack-item[ioty-type="remoteObjectDetector"] .flash {
   filter: brightness(1.5); }
 
 .grid-stack-item[ioty-type="heartbeat"] .heartbeat {

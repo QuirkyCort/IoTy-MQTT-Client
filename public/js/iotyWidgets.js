@@ -402,7 +402,6 @@ class IotyHSlider extends IotyWidget {
       '</div>';
     this.options.type = 'hSlider';
     this.widgetName = '#widget-hSlider#';
-    this.state = 0;
 
     this.lastPayload = null;
     this.payload = null;
@@ -543,7 +542,6 @@ class IotyVSlider extends IotyWidget {
       '</div>';
     this.options.type = 'vSlider';
     this.widgetName = '#widget-vSlider#';
-    this.state = 0;
 
     this.lastPayload = null;
     this.payload = null;
@@ -767,7 +765,6 @@ class IotySelect extends IotyWidget {
       '</div>';
     this.options.type = 'select';
     this.widgetName = '#widget-select#';
-    this.state = 0;
 
     let settings = [
       {
@@ -851,7 +848,6 @@ class IotyDisplay extends IotyWidget {
     this.content = '<div class="display"></div>'
     this.options.type = 'display';
     this.widgetName = '#widget-display#';
-    this.state = 0;
 
     let settings = [
       {
@@ -895,7 +891,6 @@ class IotyStatus extends IotyWidget {
     this.content = '<div class="status"><div class="indicator"><div class="label">Status</div></div></div>'
     this.options.type = 'status';
     this.widgetName = '#widget-status#';
-    this.state = 0;
 
     let settings = [
       {
@@ -989,7 +984,6 @@ class IotyHBar extends IotyWidget {
       '</div>';
     this.options.type = 'hBar';
     this.widgetName = '#widget-hBar#';
-    this.state = 0;
 
     let settings = [
       {
@@ -1076,7 +1070,6 @@ class IotyVBar extends IotyWidget {
       '</div>';
     this.options.type = 'vBar';
     this.widgetName = '#widget-vBar#';
-    this.state = 0;
 
     let settings = [
       {
@@ -1432,7 +1425,6 @@ class IotyNotification extends IotyWidget {
     this.content = '<div class="notification"><div class="indicator"><img src="images/notification_icon.png"><div class="label">Notif</div></div></div>'
     this.options.type = 'notification';
     this.widgetName = '#widget-notification#';
-    this.state = 0;
 
     let settings = [
       {
@@ -3111,7 +3103,6 @@ class IotySpeech extends IotyWidget {
     this.content = '<div class="speech"><div class="wrapper"><div class="glow"></div><img src="images/mic.png"><img class="top" src="images/mic.png"></div></div>'
     this.options.type = 'speech';
     this.widgetName = '#widget-speech#';
-    this.state = 0;
 
     let settings = [
       {
@@ -3258,7 +3249,6 @@ class IotyChart extends IotyWidget {
       '</div>'
     this.options.type = 'chart';
     this.widgetName = '#widget-chart#';
-    this.state = 0;
 
     let settings = [
       {
@@ -3531,7 +3521,6 @@ class IotyGauge extends IotyWidget {
       '</div>';
     this.options.type = 'gauge';
     this.widgetName = '#widget-gauge#';
-    this.state = 0;
 
     let settings = [
       {
@@ -3685,7 +3674,6 @@ class IotyImageTM extends IotyWidget {
       '</div>';
     this.options.type = 'imageTM';
     this.widgetName = '#widget-imageTM#';
-    this.state = 0;
 
     let settings = [
       {
@@ -3943,7 +3931,6 @@ class IotyRemoteImageTM extends IotyWidget {
       '</div>';
     this.options.type = 'remoteImageTM';
     this.widgetName = '#widget-remoteImageTM#';
-    this.state = 0;
 
     let settings = [
       {
@@ -4144,7 +4131,6 @@ class IotyHeartbeat extends IotyWidget {
     this.content = '<div class="heartbeat"><div class="indicator"><img class="gray" src="images/heart_gray.svg"><img class="red" src="images/heart_red.svg"><div class="label">Heartbeat</div></div></div>'
     this.options.type = 'heartbeat';
     this.widgetName = '#widget-heartbeat#';
-    this.state = 0;
 
     let settings = [
       {
@@ -4239,7 +4225,6 @@ class IotyECG extends IotyWidget {
     this.content = '<div class="ecg"><div class="indicator"><img class="dead" src="images/ecg_dead.svg"><img class="live hide" src="images/ecg_live.svg"><div class="label">ECG</div></div></div>'
     this.options.type = 'ecg';
     this.widgetName = '#widget-ecg#';
-    this.state = 0;
 
     let settings = [
       {
@@ -4688,11 +4673,95 @@ class IotyObjectDetector extends IotyWidget {
     super();
     this.content =
       '<div class="objectDetector">' +
-        '<img src="images/objectDetector.jpg">' +
-        '<img class="hide" src="">' +
+        '<div class="wrapper"></div><div class="results"></div>' +
+        '<img class="placeholder" src="images/objectDetector.jpg">' +
+        '<video autoplay playsinline></video>' +
       '</div>';
     this.options.type = 'objectDetector';
     this.widgetName = '#widget-objectDetector#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The object detector widget will perform object detection on the camera images every 0.5s, then publish the results.',
+        save: false
+      },
+      {
+        name: 'objectList',
+        title: 'Trained Classes',
+        type: 'html',
+        value:
+        '<p>Object detector can detect 80 different objects. See <a href="https://github.com/amikelive/coco-labels/blob/master/coco-labels-2014_2017.txt" target="_blank">list of available classes</a>.</p>',
+        save: false
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Results of image detection will be published to this topic.',
+        save: true
+      },
+      {
+        name: 'resultsGuide',
+        title: 'Results Format',
+        type: 'html',
+        value:
+        '<p>Results is a list in JSON format. Each item in the list contains:</p>' +
+        '<ul>' +
+          '<li>name: (string) Name of the class</li>' +
+          '<li>score: (float) Confidence level of the detection</li>' +
+          '<li>x, y, w, h: (int) Bounding box</li>' +
+        '</ul>',
+        save: false
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  async attach(ele) {
+    super.attach(ele);
+
+    let video = this.element.querySelector('video');
+    const constraints = {
+      video: true
+    };
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then(function (stream) {
+        video.srcObject = stream;
+      });
+
+    this.intervalID = setInterval(this.detectObject.bind(this), 500);
+  }
+
+  processSettings() {
+    super.processSettings();
+  }
+
+  async detectObject() {
+    if (main.mode == main.MODE_RUN) {
+      let vid = this.element.querySelector('video');
+      let result = await window.detectObjectVideo(vid);
+      if (result) {
+        main.publish(this.getSetting('topic'), JSON.stringify(result));
+      }
+    }
+  }
+}
+
+class IotyRemoteObjectDetector extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="remoteObjectDetector">' +
+        '<img src="images/objectDetector.jpg">' +
+        '<img class="hide" src="">' +
+      '</div>';
+    this.options.type = 'remoteObjectDetector';
+    this.widgetName = '#widget-remoteObjectDetector#';
 
     let settings = [
       {
@@ -4764,8 +4833,10 @@ class IotyObjectDetector extends IotyWidget {
 
   async detectObject() {
     let image = this.element.querySelector('img.hide');
-    let result = await window.detectObject(image);
-    main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
+    let result = await window.detectObjectImage(image);
+    if (result) {
+      main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
+    }
   }
 
   flashIndicator() {
@@ -4807,6 +4878,7 @@ IOTY_WIDGETS = [
   { type: 'imageTM', widgetClass: IotyImageTM},
   { type: 'remoteImageTM', widgetClass: IotyRemoteImageTM},
   { type: 'objectDetector', widgetClass: IotyObjectDetector},
+  { type: 'remoteObjectDetector', widgetClass: IotyRemoteObjectDetector},
   { type: 'graphXY', widgetClass: IotyGraphXY},
 ];
 

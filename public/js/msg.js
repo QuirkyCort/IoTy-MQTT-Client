@@ -99,10 +99,13 @@ let MSGS = {
     en: 'Teachable Machine (Image)',
   },
   '#widget-remoteImageTM#': {
-    en: 'Teachable Machine (Remote Image)',
+    en: 'Teachable Machine (Image, Remote)',
   },
   '#widget-objectDetector#': {
     en: 'Object Detector',
+  },
+  '#widget-remoteObjectDetector#': {
+    en: 'Object Detector (Remote)',
   },
   '#widget-heartbeat#': {
     en: 'Heartbeat',
