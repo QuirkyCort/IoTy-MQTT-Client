@@ -98,6 +98,9 @@ let MSGS = {
   '#widget-imageTM#': {
     en: 'Teachable Machine (Image)',
   },
+  '#widget-remoteImageTM#': {
+    en: 'Teachable Machine (Remote Image)',
+  },
   '#widget-objectDetector#': {
     en: 'Object Detector',
   },

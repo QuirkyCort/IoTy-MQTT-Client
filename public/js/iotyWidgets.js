@@ -3692,7 +3692,7 @@ class IotyImageTM extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The Teachable Machince (Image) widget will recognise objects seen by the camera, and publish the result to the specified topic.',
+        value: 'The Teachable Machine (Image) widget will classify objects seen by the camera, and publish the result to the specified topic.',
         save: false
       },
       {
@@ -4569,7 +4569,212 @@ class IotyObjectDetector extends IotyWidget {
       indicator.classList.remove('flash');
     }, 200);
   }
+}
 
+class IotyRemoteImageTM extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="remoteImageTM">' +
+      '<img class="hide" src="">' +
+      '<img src="images/imageTM_placeholder.png">' +
+      '<div class="results"></div>' +
+      '</div>';
+    this.options.type = 'remoteImageTM';
+    this.widgetName = '#widget-remoteImageTM#';
+    this.state = 0;
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'label',
+        value: 'The Teachable Machine (Remote Image) widget will classify objects published to the data topic, and publish the result to the results topic.',
+        save: false
+      },
+      {
+        name: 'dataTopic',
+        title: 'Data Topic',
+        type: 'text',
+        value: '',
+        help: 'Publish image data to this topic. Images can be in any format supported by the browser.',
+        save: true
+      },
+      {
+        name: 'resultsTopic',
+        title: 'Results Topic',
+        type: 'text',
+        value: '',
+        help: 'Results of image classification will be published to this topic.',
+        save: true
+      },
+      {
+        name: 'url',
+        title: 'Model URL',
+        type: 'text',
+        value: '',
+        help: 'Link to your model provided by Teachable Machine export panel',
+        save: true
+      },
+      {
+        name: 'threshold',
+        title: 'Confidence Threshold (0 to 1.0)',
+        type: 'text',
+        value: '0.8',
+        help: 'The result will only be sent if the confidence is above the threshold. If blank or invalid, the default of 0.8 will be used.',
+        save: true
+      },
+      {
+        name: 'resultGuide',
+        title: 'Result Type',
+        type: 'html',
+        value:
+        '<p>Class name only</p>' +
+        '<ul>' +
+          '<li>Sends the name of the class with the highest probability, but only if it is above the confidence threshold</li>' +
+          '<li>If none of the results are above the confidence threshold, an empty string will be sent</li>' +
+        '</ul>' +
+        '<p>Class and Confidence</p>' +
+        '<ul>' +
+          '<li>Sends classname and probability as an array in json format</li>' +
+          '<li>Example: ["class1", 0.89]</li>' +
+          '<li>Only send the result with the highest confidence</li>' +
+          '<li>Ignores confidence threshold</li>' +
+        '</ul>' +
+        '<p>All Results</p>' +
+        '<ul>' +
+          '<li>Sends all results as an array of arrays in json format</li>' +
+          '<li>Example: [["class1", 0.89], ["class2", 0.11]]</li>' +
+          '<li>Ignores confidence threshold</li>' +
+        '</ul>',
+        save: false
+      },
+      {
+        name: 'resultType',
+        title: 'Result Type',
+        type: 'select',
+        options: [
+          ['Class Name only', 'class'],
+          ['Class and Confidence (json)', 'classAndConfidence'],
+          ['All Results (json)', 'all'],
+        ],
+        value: 'class',
+        save: true
+      },
+      {
+        name: 'displayResults',
+        title: 'Display Results',
+        type: 'check',
+        value: 'true',
+        help: 'If true, results will be displayed on screen.',
+        save: true
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  async attach(ele) {
+    super.attach(ele);
+  }
+
+  async processSettings() {
+    super.processSettings();
+
+    try {
+      let url = this.getSetting('url').trim();
+      if (url[url.length-1] != '/') {
+        url += '/';
+      }
+      const modelURL = url + "model.json";
+      const metadataURL = url + "metadata.json";
+      this.model = await tmImage.load(modelURL, metadataURL);
+    } catch (e) {
+      this.model = null;
+      toastMsg('Unable to load Teachable Machine model');
+    }
+
+    this.subscriptions.push(this.getSetting('dataTopic'));
+  }
+
+  onMessageArrived(payload, topic) {
+    let image = this.element.querySelector('img.hide');
+    image.onload = this.predict.bind(this);
+    image.src = URL.createObjectURL(
+      new Blob([payload])
+    );
+    this.flashIndicator()
+  }
+
+  displayResults(results) {
+    if (this.getSetting('displayResults') == 'true') {
+      let html = '';
+      for (let result of results) {
+        html += result.className + ': ' + result.probability.toFixed(2) + '<br>';
+      }
+      this.element.querySelector('.results').innerHTML = html;
+      this.element.querySelector('.results').style.display = 'block';
+    } else {
+      this.element.querySelector('.results').style.display = 'none';
+    }
+  }
+
+  findHighest(results) {
+    let highestIndex = 0;
+    let highestProbability = 0;
+    for (let i in results) {
+      if (results[i].probability > highestProbability) {
+        highestIndex = i;
+        highestProbability = results[i].probability;
+      }
+    }
+    return results[highestIndex];
+  }
+
+  async predict() {
+    if (this.model) {
+      let image = this.element.querySelector('img.hide');
+      const results = await this.model.predict(image);
+
+      this.displayResults(results);
+      let highest = this.findHighest(results);
+
+      let threshold = parseFloat(this.getSetting('threshold'));
+      if (threshold == NaN) {
+        threshold = 0.8;
+      }
+
+      if (main.mode == main.MODE_RUN) {
+        if (this.getSetting('resultType') == 'class') {
+          let result = '';
+          if (highest.probability > threshold) {
+            result = highest.className;
+          }
+
+          main.publish(this.getSetting('resultsTopic'), result);
+        } else if (this.getSetting('resultType') == 'classAndConfidence') {
+          let result = [];
+          result.push(highest.className);
+          result.push(highest.probability);
+          main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
+
+        } else if (this.getSetting('resultType') == 'all') {
+          let all = [];
+          for (let result of results) {
+            all.push([result.className, result.probability]);
+          }
+          main.publish(this.getSetting('resultsTopic'), JSON.stringify(all));
+        }
+      }
+    }
+  }
+
+  flashIndicator() {
+    let indicator = this.element.querySelector('img:not(.hide)');
+    indicator.classList.add('flash');
+    setTimeout(function(){
+      indicator.classList.remove('flash');
+    }, 200);
+  }
 }
 
 IOTY_WIDGETS = [
@@ -4600,6 +4805,7 @@ IOTY_WIDGETS = [
   { type: 'speech', widgetClass: IotySpeech},
   { type: 'chart', widgetClass: IotyChart},
   { type: 'imageTM', widgetClass: IotyImageTM},
+  { type: 'remoteImageTM', widgetClass: IotyRemoteImageTM},
   { type: 'objectDetector', widgetClass: IotyObjectDetector},
   { type: 'graphXY', widgetClass: IotyGraphXY},
 ];

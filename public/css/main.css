@@ -853,6 +853,24 @@ main {
     background: rgba(255, 255, 255, 0.5);
     padding: 0.2em; }
 
+.grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM {
+  position: relative;
+  height: calc(100% - 1em);
+  width: calc(100% - 1em); }
+  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM img {
+    max-height: 100%;
+    max-width: 100%; }
+  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .hide {
+    display: none; }
+  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .flash {
+    filter: brightness(1.5); }
+  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .results {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 0.2em; }
+
 .grid-stack-item[ioty-type="objectDetector"] .objectDetector {
   height: calc(100% - 1em);
   width: calc(100% - 1em);
