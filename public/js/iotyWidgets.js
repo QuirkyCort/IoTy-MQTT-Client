@@ -4744,10 +4744,28 @@ class IotyObjectDetector extends IotyWidget {
   async detectObject() {
     if (main.mode == main.MODE_RUN) {
       let vid = this.element.querySelector('video');
-      let result = await window.detectObjectVideo(vid);
-      if (result) {
-        main.publish(this.getSetting('topic'), JSON.stringify(result));
+      let results = await window.detectObjectVideo(vid);
+      if (results) {
+        main.publish(this.getSetting('topic'), JSON.stringify(results));
+        this.highlightResults(results);
       }
+    }
+  }
+
+  highlightResults(results) {
+    let vid = this.element.querySelector('video');
+    let div = this.element.querySelector('.objectDetector');
+    div.querySelectorAll('.highlight').forEach(element => element.remove());
+
+    for (let result of results) {
+      let p = document.createElement('p');
+      p.innerText = result.name;
+      p.style.left = vid.offsetLeft + (result.x / vid.videoWidth * vid.offsetWidth) + 'px';
+      p.style.top = vid.offsetTop + (result.y / vid.videoHeight * vid.offsetHeight) + 'px';
+      p.style.width = (result.w / vid.videoWidth * vid.offsetWidth) + 'px';
+      p.style.height = (result.h / vid.videoHeight * vid.offsetHeight) + 'px';
+      p.classList.add('highlight');
+      div.append(p);
     }
   }
 }

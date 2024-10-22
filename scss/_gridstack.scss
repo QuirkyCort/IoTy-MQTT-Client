@@ -857,6 +857,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
   }
 
   video {
@@ -867,6 +868,14 @@ main {
   img {
     max-height: 100%;
     max-width: 100%;
+  }
+
+  .highlight {
+    position: absolute;
+    border: solid 1px red;
+    color: red;
+    margin: 0;
+    box-sizing: border-box;
   }
 }
 
