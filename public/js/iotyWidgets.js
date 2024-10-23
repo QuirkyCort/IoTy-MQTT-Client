@@ -2429,17 +2429,50 @@ class IotyRawImage extends IotyWidget {
       },
       {
         name: 'depth',
-        title: 'Color Depth of the Image',
+        title: 'Bit Depth of the Image',
         type: 'select',
         options: [
-          ['Grayscale (8 bits)', 'gray8'],
+          ['Unsigned 8 bits', 'uint8'],
+          ['Signed 8 bits', 'int8'],
+          ['Unsigned 16 bits Big Endian', 'uint16_BE'],
+          ['Unsigned 16 bits Little Endian', 'uint16_LE'],
+          ['Signed 16 bits Big Endian', 'int16_BE'],
+          ['Signed 16 bits Little Endian', 'int16_LE'],
           ['RGB (16 bits, Big Endian)', 'rgb16BE'],
           ['RGB (16 bits, Little Endian)', 'rgb16LE'],
           ['RGB (24 bits)', 'rgb24'],
-          ['False Color (8 bits, Iron Palette)', 'falseColorIron8'],
         ],
-        value: 'gray8',
+        value: 'uint8',
         help: 'This can also be set via the control topic using keyword "depth X". Valid X are "gray8", "rgb16BE", "rgb16LE", "rgb24", "falseColorIron8".',
+        save: true
+      },
+      {
+        name: 'grayDisplay',
+        title: 'Display mode of grayscale images',
+        type: 'select',
+        options: [
+          ['Grayscale', 'gray'],
+          ['Grayscale Inverse', 'grayInverse'],
+          ['False Color (Iron Palette)', 'falseColorIron'],
+        ],
+        value: 'gray',
+        help: 'Only used for grayscale images. This can also be set via the control topic using keyword "grayDisplay X". Valid X are "gray", "falseColor".',
+        save: true
+      },
+      {
+        name: 'pixelMin',
+        title: 'Pixel Minimum',
+        type: 'text',
+        value: '',
+        help: 'Pixel values will be scaled to the minimum and maximum range. Leave blank to disable scaling. This can also be set via the control topic using keyword "pixelMin X".',
+        save: true
+      },
+      {
+        name: 'pixelMax',
+        title: 'Pixel Maximum',
+        type: 'text',
+        value: '',
+        help: 'Pixel values will be scaled to the minimum and maximum range. Leave blank to disable scaling. This can also be set via the control topic using keyword "pixelMax X".',
         save: true
       },
       {
@@ -2472,7 +2505,35 @@ class IotyRawImage extends IotyWidget {
     this.width = Number(this.getSetting('width'));
     this.height = Number(this.getSetting('height'));
     this.depth = this.getSetting('depth');
+    this.grayDisplay = this.getSetting('grayDisplay');
     this.scaling = this.getSetting('scaling');
+
+    const uint8 = ['uint8', 'rgb16BE', 'rgb16LE', 'rgb24'];
+    const int8 = ['int8'];
+    const uint16 = ['uint16_BE', 'uint16_LE'];
+    const int16 = ['int16_BE', 'int16_LE'];
+    if (uint8.includes(this.depth)) {
+      this.pixelMin = 0;
+      this.pixelMax = 255;
+    } else if (int8.includes(this.depth)) {
+      this.pixelMin = -128;
+      this.pixelMax = 127;
+    } else if (uint16.includes(this.depth)) {
+      this.pixelMin = 0;
+      this.pixelMax = 65535;
+    } else if (int16.includes(this.depth)) {
+      this.pixelMin = -32768;
+      this.pixelMax = 32767;
+    }
+
+    let pixelMin = this.getSetting('pixelMin');
+    if (pixelMin.trim() != '') {
+      this.pixelMin = Number(pixelMin);
+    }
+    let pixelMax = this.getSetting('pixelMax');
+    if (pixelMax.trim() != '') {
+      this.pixelMax = Number(pixelMax);
+    }
 
     this.topics = {};
     for (let topic of ['controlTopic', 'dataTopic']) {
@@ -2525,26 +2586,22 @@ class IotyRawImage extends IotyWidget {
         this.height = Number(command[1]);
       } else if (command[0] == 'depth' && command.length == 2) {
         this.depth = command[1];
+      } else if (command[0] == 'grayDisplay' && command.length == 2) {
+        this.grayDisplay = command[1];
       } else if (command[0] == 'scaling' && command.length == 2) {
         this.scaling = command[1];
+      } else if (command[0] == 'pixelMin' && command.length == 2) {
+        this.pixelMin = Number(command[1]);
+      } else if (command[0] == 'pixelMax' && command.length == 2) {
+        this.pixelMax = Number(command[1]);
       }
     }
   }
 
-  gray8ToPixel(image, index) {
-    let out = new Uint8Array(4);
-    out[0] = image[index];
-    out[1] = image[index];
-    out[2] = image[index];
-    out[3] = 255;
-
-    return out;
-  }
-
-  falseColor8ToPixel(palette, image, index) {
+  falseColor8ToPixel(palette, value) {
     let out = new Uint8Array(4);
 
-    var x = image[index] / 255;
+    var x = value / 255;
     let i;
     for (i=0; i<palette.length; i++) {
       if (x <= palette[i][0]) {
@@ -2567,13 +2624,11 @@ class IotyRawImage extends IotyWidget {
         out[i] = (prev[1][i] * (next[0] - x) + next[1][i] * (x - prev[0])) / range;
       }
     }
-
     out[3] = 255;
-
     return out;
   }
 
-  falseColorIron8ToPixel(image, index) {
+  falseColorIron8ToPixel(value) {
     let palette = [
       [0.0, [0x00, 0x00, 0x0A]],
       [0.25, [0x91, 0x00, 0x9C]],
@@ -2582,40 +2637,94 @@ class IotyRawImage extends IotyWidget {
       [1.0, [0xFF, 0xFF, 0xF6]]
     ]
 
-    return this.falseColor8ToPixel(palette, image, index);
+    return this.falseColor8ToPixel(palette, value);
   }
 
-  rgb16LEToPixel(image, index) {
-    let out = new Uint8Array(4);
-    out[0] = image[index*2+1] & 0b11111000;
-    out[1] = (image[index*2+1] & 0b00000111) << 5 | (image[index*2] & 0b11100000) >> 5;
-    out[2] = (image[index*2] & 0b00011111) << 3;
-    out[3] = 255;
+  getValue(image, index) {
+    if (this.depth == 'uint8') {
+      let v = image[index]
+      return [v];
+    } else if (this.depth == 'int8') {
+      let v = image[index]
+      if (v > 127) {
+        v -= 256;
+      }
+      return [v];
+    } else if (this.depth == 'uint16_BE') {
+      let v = image[index*2] << 8 | image[index*2+1];
+      return [v];
+    } else if (this.depth == 'uint16_LE') {
+      let v = image[index*2+1] << 8 | image[index*2];
+      return [v];
+    } else if (this.depth == 'int16_BE') {
+      let v = image[index*2] << 8 | image[index*2+1];
+      if (v > 32767) {
+        v -= 65536
+      }
+      return [v];
+    } else if (this.depth == 'int16_LE') {
+      let v = image[index*2+1] << 8 | image[index*2];
+      if (v > 32767) {
+        v -= 65536
+      }
+      return [v];
+    } else if (this.depth == 'rgb16BE') {
+      let r = image[index*2] & 0b11111000;
+      let g = (image[index*2] & 0b00000111) << 5 | (image[index*2+1] & 0b11100000) >> 5;
+      let b = (image[index*2+1] & 0b00011111) << 3;
+      return [r, g, b];
+    } else if (this.depth == 'rgb16LE') {
+      let r = image[index*2+1] & 0b11111000;
+      let g = (image[index*2+1] & 0b00000111) << 5 | (image[index*2] & 0b11100000) >> 5;
+      let b = (image[index*2] & 0b00011111) << 3;
+      return [r, g, b];
+    } else if (this.depth == 'rgb24') {
+      let r = image[index*3];
+      let g = image[index*3+1]
+      let b = image[index*3+2];
+      return [r, g, b];
+    }
 
+    return [r, g, b];
+  }
+
+  scaleValue(value) {
+    let out = [];
+    let range = this.pixelMax - this.pixelMin;
+    for (let v of value) {
+      v = Math.round((v - this.pixelMin) / range * 255);
+      v = Math.max(Math.min(v, 255), 0);
+      out.push(v);
+    }
     return out;
   }
 
-  rgb16BEToPixel(image, index) {
-    let out = new Uint8Array(4);
-    out[0] = image[index*2] & 0b11111000;
-    out[1] = (image[index*2] & 0b00000111) << 5 | (image[index*2+1] & 0b11100000) >> 5;
-    out[2] = (image[index*2+1] & 0b00011111) << 3;
-    out[3] = 255;
+  getPixel(image, index) {
+    let value = this.getValue(image, index);
+    let scaled = this.scaleValue(value);
 
+    let out = new Uint8Array(4);
+    if (scaled.length == 3) {
+      out[0] = scaled[0];
+      out[1] = scaled[1];
+      out[2] = scaled[2];
+    } else if (this.grayDisplay == 'gray') {
+      out[0] = scaled[0];
+      out[1] = scaled[0];
+      out[2] = scaled[0];
+    } else if (this.grayDisplay == 'grayInverse') {
+      out[0] = 255 - scaled[0];
+      out[1] = 255 - scaled[0];
+      out[2] = 255 - scaled[0];
+    } else if (this.grayDisplay == 'falseColorIron') {
+      out = this.falseColorIron8ToPixel(scaled[0]);
+    }
+
+    out[3] = 255;
     return out;
   }
 
-  rgb24ToPixel(image, index) {
-    let out = new Uint8Array(4);
-    out[0] = image[index*3];
-    out[1] = image[index*3+1]
-    out[2] = image[index*3+2];
-    out[3] = 255;
-
-    return out;
-  }
-
-  nearestNeighbourScale(image, depth) {
+  nearestNeighbourScale(image) {
     let canvas = this.element.querySelector('canvas');
 
     const iw = this.width;
@@ -2631,18 +2740,7 @@ class IotyRawImage extends IotyWidget {
         let oi = y * ow + x;
         let ii = Math.floor(y * ih / oh) * iw + Math.floor(x * iw / ow);
 
-        let pixel;
-        if (depth == 'gray8') {
-          pixel = this.gray8ToPixel(image, ii);
-        } else if (depth == 'falseColorIron8') {
-          pixel = this.falseColorIron8ToPixel(image, ii);
-        } else if (depth == 'rgb16LE') {
-          pixel = this.rgb16LEToPixel(image, ii);
-        } else if (depth == 'rgb16BE') {
-          pixel = this.rgb16BEToPixel(image, ii);
-        } else if (depth == 'rgb24') {
-          pixel = this.rgb24ToPixel(image, ii);
-        }
+        let pixel = this.getPixel(image, ii);
 
         for (let i=0; i<4; i++) {
           imageData.data[4 * oi + i] = pixel[i];
@@ -2653,7 +2751,7 @@ class IotyRawImage extends IotyWidget {
     return imageData;
   }
 
-  bilinearScale(image, depth) {
+  bilinearScale(image) {
     let canvas = this.element.querySelector('canvas');
 
     const iw = this.width;
@@ -2663,6 +2761,8 @@ class IotyRawImage extends IotyWidget {
 
     let ctx = canvas.getContext("2d");
     let imageData = ctx.createImageData(ow, oh);
+
+    let p = [[0, -1], [0, -1], [0, -1], [0, -1]];
 
     for (let y=0; y<oh; y++) {
       for (let x=0; x<ow; x++) {
@@ -2674,38 +2774,31 @@ class IotyRawImage extends IotyWidget {
         let yFloor = Math.floor(iy);
         let yCeil = Math.min(Math.ceil(iy), ih - 1);
 
-        let p0, p1, p2, p3;
-        let pixel = new Uint8Array(4);
-        if (depth == 'gray8') {
-          p0 = this.gray8ToPixel(image, yFloor * iw + xFloor);
-          p1 = this.gray8ToPixel(image, yFloor * iw + xCeil);
-          p2 = this.gray8ToPixel(image, yCeil * iw + xFloor);
-          p3 = this.gray8ToPixel(image, yCeil * iw + xCeil);
-        } else if (depth == 'falseColorIron8') {
-          p0 = this.falseColorIron8ToPixel(image, yFloor * iw + xFloor);
-          p1 = this.falseColorIron8ToPixel(image, yFloor * iw + xCeil);
-          p2 = this.falseColorIron8ToPixel(image, yCeil * iw + xFloor);
-          p3 = this.falseColorIron8ToPixel(image, yCeil * iw + xCeil);
-        } else if (depth == 'rgb16LE') {
-          p0 = this.rgb16LEToPixel(image, yFloor * iw + xFloor);
-          p1 = this.rgb16LEToPixel(image, yFloor * iw + xCeil);
-          p2 = this.rgb16LEToPixel(image, yCeil * iw + xFloor);
-          p3 = this.rgb16LEToPixel(image, yCeil * iw + xCeil);
-        } else if (depth == 'rgb16BE') {
-          p0 = this.rgb16BEToPixel(image, yFloor * iw + xFloor);
-          p1 = this.rgb16BEToPixel(image, yFloor * iw + xCeil);
-          p2 = this.rgb16BEToPixel(image, yCeil * iw + xFloor);
-          p3 = this.rgb16BEToPixel(image, yCeil * iw + xCeil);
-        } else if (depth == 'rgb24') {
-          p0 = this.rgb24ToPixel(image, yFloor * iw + xFloor);
-          p1 = this.rgb24ToPixel(image, yFloor * iw + xCeil);
-          p2 = this.rgb24ToPixel(image, yCeil * iw + xFloor);
-          p3 = this.rgb24ToPixel(image, yCeil * iw + xCeil);
+        let i = yFloor * iw + xFloor;
+        if (i != p[0][1]) {
+          p[0][0] = this.getPixel(image, i);
+          p[0][1] = i;
+        }
+        i = yFloor * iw + xCeil;
+        if (i != p[1][1]) {
+          p[1][0] = this.getPixel(image, i);
+          p[1][1] = i;
+        }
+        i = yCeil * iw + xFloor;
+        if (i != p[2][1]) {
+          p[2][0] = this.getPixel(image, i);
+          p[2][1] = i;
+        }
+        i = yCeil * iw + xCeil;
+        if (i != p[3][1]) {
+          p[3][0] = this.getPixel(image, i);
+          p[3][1] = i;
         }
 
+        let pixel = new Uint8Array(4);
         for (let i=0; i<4; i++) {
-          let q1 = p0[i] * (xCeil - ix) + p1[i] * (ix - xFloor)
-          let q2 = p2[i] * (xCeil - ix) + p3[i] * (ix - xFloor)
+          let q1 = p[0][0][i] * (xCeil - ix) + p[1][0][i] * (ix - xFloor)
+          let q2 = p[2][0][i] * (xCeil - ix) + p[3][0][i] * (ix - xFloor)
           pixel[i] = Math.round(q1 * (yCeil - iy) + q2 * (iy - yFloor))
         }
 
@@ -2721,9 +2814,9 @@ class IotyRawImage extends IotyWidget {
   onMessageArrivedData(payload) {
     let scaledImage;
     if (this.scaling == 'nearestNeighbour') {
-      scaledImage = this.nearestNeighbourScale(payload, this.depth);
+      scaledImage = this.nearestNeighbourScale(payload);
     } else if (this.scaling == 'bilinear') {
-      scaledImage = this.bilinearScale(payload, this.depth);
+      scaledImage = this.bilinearScale(payload);
     }
 
     let canvas = this.element.querySelector('canvas');
