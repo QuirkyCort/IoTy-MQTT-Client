@@ -2335,10 +2335,16 @@ class IotyImage extends IotyWidget {
     }
 
     this.topics = {};
-    for (let topic of ['urlTopic', 'controlTopic', 'dataTopic']) {
+    for (let topic of ['urlTopic', 'controlTopic']) {
       this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+    for (let topic of ['dataTopic']) {
+      this.topics[topic] = this.getSetting(topic);
+      if (this.getSetting(topic).trim() != '') {
+        this.bytesSubscriptions.push(this.getSetting(topic));
       }
     }
   }
@@ -4151,7 +4157,7 @@ class IotyRemoteImageTM extends IotyWidget {
       toastMsg('Unable to load Teachable Machine model');
     }
 
-    this.subscriptions.push(this.getSetting('dataTopic'));
+    this.bytesSubscriptions.push(this.getSetting('dataTopic'));
   }
 
   onMessageArrived(payload, topic) {
@@ -4947,7 +4953,7 @@ class IotyRemoteObjectDetector extends IotyWidget {
   processSettings() {
     super.processSettings();
 
-    this.subscriptions.push(this.getSetting('dataTopic'));
+    this.bytesSubscriptions.push(this.getSetting('dataTopic'));
   }
 
   onMessageArrived(payload, topic) {
