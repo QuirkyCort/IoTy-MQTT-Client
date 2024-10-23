@@ -1910,7 +1910,6 @@ class IotyDirection extends IotyWidget {
         this.thetaConverted -= Math.PI * 2;
       }
     }
-    console.log(this.thetaConverted);
   }
 
   turnIndicator() {
