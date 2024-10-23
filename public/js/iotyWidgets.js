@@ -9,6 +9,7 @@ class IotyWidget {
     this.content = '';
     this.element = null;
     this.subscriptions = [];
+    this.bytesSubscriptions = [];
 
     this.options = {
       type: '',
@@ -2460,6 +2461,18 @@ class IotyRawImage extends IotyWidget {
         save: true
       },
       {
+        name: 'rangeMode',
+        title: 'Ranging Mode',
+        type: 'select',
+        options: [
+          ['Auto', 'auto'],
+          ['Manual', 'manual']
+        ],
+        value: 'auto',
+        help: 'In auto mode, the pixel minimum and maximum will be set based on image data.',
+        save: true
+      },
+      {
         name: 'pixelMin',
         title: 'Pixel Minimum',
         type: 'text',
@@ -2507,6 +2520,7 @@ class IotyRawImage extends IotyWidget {
     this.depth = this.getSetting('depth');
     this.grayDisplay = this.getSetting('grayDisplay');
     this.scaling = this.getSetting('scaling');
+    this.rangeMode = this.getSetting('rangeMode');
 
     const uint8 = ['uint8', 'rgb16BE', 'rgb16LE', 'rgb24'];
     const int8 = ['int8'];
@@ -2535,13 +2549,8 @@ class IotyRawImage extends IotyWidget {
       this.pixelMax = Number(pixelMax);
     }
 
-    this.topics = {};
-    for (let topic of ['controlTopic', 'dataTopic']) {
-      this.topics[topic] = this.getSetting(topic);
-      if (this.getSetting(topic).trim() != '') {
-        this.subscriptions.push(this.getSetting(topic));
-      }
-    }
+    this.subscriptions.push(this.getSetting('controlTopic'));
+    this.bytesSubscriptions.push(this.getSetting('dataTopic'));
   }
 
   canvasResize(entries) {
@@ -2563,9 +2572,9 @@ class IotyRawImage extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    if (topic == this.topics['controlTopic']) {
+    if (topic == this.getSetting('controlTopic')) {
       this.onMessageArrivedControl(payload);
-    } else if (topic == this.topics['dataTopic']) {
+    } else if (topic == this.getSetting('dataTopic')) {
       this.onMessageArrivedData(payload);
     }
   }
@@ -2688,40 +2697,66 @@ class IotyRawImage extends IotyWidget {
     return [r, g, b];
   }
 
-  scaleValue(value) {
+  scaleValue(value, min, max) {
     let out = [];
-    let range = this.pixelMax - this.pixelMin;
+    let range = max - min;
     for (let v of value) {
-      v = Math.round((v - this.pixelMin) / range * 255);
+      v = Math.round((v - min) / range * 255);
       v = Math.max(Math.min(v, 255), 0);
       out.push(v);
     }
     return out;
   }
 
-  getPixel(image, index) {
-    let value = this.getValue(image, index);
-    let scaled = this.scaleValue(value);
-
+  getPixel(value) {
     let out = new Uint8Array(4);
-    if (scaled.length == 3) {
-      out[0] = scaled[0];
-      out[1] = scaled[1];
-      out[2] = scaled[2];
+    if (value.length == 3) {
+      out[0] = value[0];
+      out[1] = value[1];
+      out[2] = value[2];
     } else if (this.grayDisplay == 'gray') {
-      out[0] = scaled[0];
-      out[1] = scaled[0];
-      out[2] = scaled[0];
+      out[0] = value[0];
+      out[1] = value[0];
+      out[2] = value[0];
     } else if (this.grayDisplay == 'grayInverse') {
-      out[0] = 255 - scaled[0];
-      out[1] = 255 - scaled[0];
-      out[2] = 255 - scaled[0];
+      out[0] = 255 - value[0];
+      out[1] = 255 - value[0];
+      out[2] = 255 - value[0];
     } else if (this.grayDisplay == 'falseColorIron') {
-      out = this.falseColorIron8ToPixel(scaled[0]);
+      out = this.falseColorIron8ToPixel(value[0]);
     }
 
     out[3] = 255;
     return out;
+  }
+
+  getPixels(image) {
+    let data = [];
+    let size = this.width*this.height;
+    for (let i=0; i<size; i++) {
+      data.push(this.getValue(image, i));
+    }
+
+    let min = 2**32;
+    let max = -(2**32);
+    if (this.rangeMode == 'auto') {
+      for (let i=0; i<size; i++) {
+        for (let j of data[i]) {
+          max = Math.max(max, j);
+          min = Math.min(min, j);
+        }
+      }
+    } else {
+      min = this.pixelMin;
+      max = this.pixelMax;
+    }
+
+    for (let i=0; i<size; i++) {
+      let v = this.scaleValue(data[i], min, max);
+      data[i] = this.getPixel(v);
+    }
+
+    return data;
   }
 
   nearestNeighbourScale(image) {
@@ -2735,15 +2770,14 @@ class IotyRawImage extends IotyWidget {
     let ctx = canvas.getContext("2d");
     let imageData = ctx.createImageData(ow, oh);
 
+    let data = this.getPixels(image);
     for (let y=0; y<oh; y++) {
       for (let x=0; x<ow; x++) {
         let oi = y * ow + x;
         let ii = Math.floor(y * ih / oh) * iw + Math.floor(x * iw / ow);
 
-        let pixel = this.getPixel(image, ii);
-
         for (let i=0; i<4; i++) {
-          imageData.data[4 * oi + i] = pixel[i];
+          imageData.data[4 * oi + i] = data[ii][i];
         }
       }
     }
@@ -2762,8 +2796,7 @@ class IotyRawImage extends IotyWidget {
     let ctx = canvas.getContext("2d");
     let imageData = ctx.createImageData(ow, oh);
 
-    let p = [[0, -1], [0, -1], [0, -1], [0, -1]];
-
+    let data = this.getPixels(image);
     for (let y=0; y<oh; y++) {
       for (let x=0; x<ow; x++) {
         let oi = y * ow + x;
@@ -2774,31 +2807,15 @@ class IotyRawImage extends IotyWidget {
         let yFloor = Math.floor(iy);
         let yCeil = Math.min(Math.ceil(iy), ih - 1);
 
-        let i = yFloor * iw + xFloor;
-        if (i != p[0][1]) {
-          p[0][0] = this.getPixel(image, i);
-          p[0][1] = i;
-        }
-        i = yFloor * iw + xCeil;
-        if (i != p[1][1]) {
-          p[1][0] = this.getPixel(image, i);
-          p[1][1] = i;
-        }
-        i = yCeil * iw + xFloor;
-        if (i != p[2][1]) {
-          p[2][0] = this.getPixel(image, i);
-          p[2][1] = i;
-        }
-        i = yCeil * iw + xCeil;
-        if (i != p[3][1]) {
-          p[3][0] = this.getPixel(image, i);
-          p[3][1] = i;
-        }
+        let p0 = data[yFloor * iw + xFloor];
+        let p1 = data[yFloor * iw + xCeil];
+        let p2 = data[yCeil * iw + xFloor];
+        let p3 = data[yCeil * iw + xCeil];
 
         let pixel = new Uint8Array(4);
         for (let i=0; i<4; i++) {
-          let q1 = p[0][0][i] * (xCeil - ix) + p[1][0][i] * (ix - xFloor)
-          let q2 = p[2][0][i] * (xCeil - ix) + p[3][0][i] * (ix - xFloor)
+          let q1 = p0[i] * (xCeil - ix) + p1[i] * (ix - xFloor)
+          let q2 = p2[i] * (xCeil - ix) + p3[i] * (ix - xFloor)
           pixel[i] = Math.round(q1 * (yCeil - iy) + q2 * (iy - yFloor))
         }
 

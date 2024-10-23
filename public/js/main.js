@@ -487,7 +487,10 @@ var main = new function() {
 
     let elements = self.grid.getGridItems();
     for (let element of elements) {
-      if (element.widget.subscriptions.includes(message.destinationName)) {
+      if (element.widget.bytesSubscriptions.includes(message.destinationName)) {
+        let payload = message.payloadBytes;
+        element.widget.onMessageArrived(payload, message.destinationName);
+      } else if (element.widget.subscriptions.includes(message.destinationName)) {
         let payload;
         try {
           payload = message.payloadString;
@@ -552,6 +555,11 @@ var main = new function() {
           newSubscription.push(subscription);
         }
       }
+      for (let subscription of element.widget.bytesSubscriptions) {
+        if (subscription.trim() != '') {
+          newSubscription.push(subscription);
+        }
+      }
     }
 
     for (let subscription of newSubscription) {
@@ -572,6 +580,11 @@ var main = new function() {
     // Create a new subscription list without duplicates
     for (let element of elements) {
       for (let subscription of element.widget.subscriptions) {
+        if (! newSubscription.includes(subscription)) {
+          newSubscription.push(subscription);
+        }
+      }
+      for (let subscription of element.widget.bytesSubscriptions) {
         if (! newSubscription.includes(subscription)) {
           newSubscription.push(subscription);
         }
