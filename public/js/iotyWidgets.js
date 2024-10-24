@@ -2460,6 +2460,8 @@ class IotyRawImage extends IotyWidget {
           ['Grayscale', 'gray'],
           ['Grayscale Inverse', 'grayInverse'],
           ['False Color (Iron Palette)', 'falseColorIron'],
+          ['False Color (Rainbow Palette)', 'falseColorRain'],
+          ['False Color (Metro Palette)', 'falseColorMetro'],
         ],
         value: 'gray',
         help: 'Only used for grayscale images. This can also be set via the control topic using keyword "grayDisplay X". Valid X are "gray", "falseColor".',
@@ -2628,7 +2630,7 @@ class IotyRawImage extends IotyWidget {
 
     if (xFloor == xCeil) {
       for (let i=0; i<3; i++) {
-        out[i] = palette[xFloor][i];
+        out[i] = palette[xFloor][1][i];
       }
     } else {
       for (let i=0; i<3; i++) {
@@ -2649,7 +2651,32 @@ class IotyRawImage extends IotyWidget {
       [0.5, [0xE6, 0x46, 0x16]],
       [0.75, [0xFE, 0xB4, 0x00]],
       [1.0, [0xFF, 0xFF, 0xF6]]
-    ]
+    ];
+
+    return this.falseColor8ToPixel(palette, value);
+  }
+
+  falseColorRain8ToPixel(value) {
+    let palette = [
+      [0.138, [0xfc, 0x00, 0xfe]],
+      [0.276, [0x00, 0x09, 0xb7]],
+      [0.409, [0x00, 0xfa, 0xf6]],
+      [0.538, [0x00, 0x6f, 0x02]],
+      [0.678, [0xf9, 0xfc, 0x00]],
+      [0.832, [0xca, 0x0b, 0x0b]],
+      [1.0, [0xfb, 0xf0, 0xf0]],
+    ];
+
+    return this.falseColor8ToPixel(palette, value);
+  }
+
+  falseColorMetro8ToPixel(value) {
+    let palette = [
+      [0.0, [0x00, 0x00, 0xff]],
+      [0.333, [0x00, 0xff, 0x00]],
+      [0.666, [0xff, 0x00, 0x00]],
+      [1.0, [0xff, 0xff, 0xff]],
+    ];
 
     return this.falseColor8ToPixel(palette, value);
   }
@@ -2729,6 +2756,10 @@ class IotyRawImage extends IotyWidget {
       out[2] = 255 - value[0];
     } else if (this.grayDisplay == 'falseColorIron') {
       out = this.falseColorIron8ToPixel(value[0]);
+    } else if (this.grayDisplay == 'falseColorRain') {
+      out = this.falseColorRain8ToPixel(value[0]);
+    } else if (this.grayDisplay == 'falseColorMetro') {
+      out = this.falseColorMetro8ToPixel(value[0]);
     }
 
     out[3] = 255;
