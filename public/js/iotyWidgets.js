@@ -4843,6 +4843,14 @@ class IotyObjectDetector extends IotyWidget {
         save: false
       },
       {
+        name: 'cameraIndex',
+        title: 'Camera Selection',
+        type: 'text',
+        value: '0',
+        help: 'Determines which camera is used. 0 will be the first camera, 1 will be second camera, etc.',
+        save: true
+      },
+      {
         name: 'topic',
         title: 'MQTT Topic',
         type: 'text',
@@ -4867,24 +4875,48 @@ class IotyObjectDetector extends IotyWidget {
     this.settings.push(...settings);
   }
 
-  async attach(ele) {
-    super.attach(ele);
+  async getVideoDevice() {
+    let index = 0;
+    try {
+      index = Number(this.getSetting('cameraIndex'))
+    } finally {
+    }
 
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    let videoDevices = [];
+    for (let device of devices) {
+      if (device.kind == 'videoinput') {
+        videoDevices.push(device.deviceId);
+      }
+    }
+
+    if (index < videoDevices.length) {
+      return { deviceId: videoDevices[index] };
+    } else {
+      return true;
+    }
+  }
+
+  async setupCamera() {
     let video = this.element.querySelector('video');
     const constraints = {
-      video: true
+      video: await this.getVideoDevice()
     };
     navigator.mediaDevices
       .getUserMedia(constraints)
       .then(function (stream) {
         video.srcObject = stream;
       });
+  }
 
+  async attach(ele) {
+    super.attach(ele);
     this.intervalID = setInterval(this.detectObject.bind(this), 500);
   }
 
   processSettings() {
     super.processSettings();
+    this.setupCamera();
   }
 
   async detectObject() {
