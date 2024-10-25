@@ -3971,17 +3971,19 @@ class IotyImageTM extends IotyWidget {
     wrapper.innerHTML = '';
     wrapper.appendChild(this.webcam.canvas);
 
-    try {
-      let url = this.getSetting('url').trim();
+    this.model = null;
+    let url = this.getSetting('url').trim();
+    if (url != '') {
       if (url[url.length-1] != '/') {
         url += '/';
       }
       const modelURL = url + "model.json";
       const metadataURL = url + "metadata.json";
-      this.model = await tmImage.load(modelURL, metadataURL);
-    } catch (e) {
-      this.model = null;
-      toastMsg('Unable to load Teachable Machine model');
+      try {
+        this.model = await tmImage.load(modelURL, metadataURL);
+      } catch (e) {
+        toastMsg('Unable to load Teachable Machine model');
+      }
     }
   }
 
@@ -4911,6 +4913,7 @@ class IotyObjectDetector extends IotyWidget {
 
   async attach(ele) {
     super.attach(ele);
+    this.setupCamera();
     this.intervalID = setInterval(this.detectObject.bind(this), 500);
   }
 
