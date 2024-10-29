@@ -4901,6 +4901,13 @@ class IotyObjectDetector extends IotyWidget {
 
   async setupCamera() {
     let video = this.element.querySelector('video');
+
+    if (video.srcObject) {
+      for (let track of video.srcObject.getTracks()) {
+        track.stop();
+      }
+    }
+
     const constraints = {
       video: await this.getVideoDevice()
     };
