@@ -4911,11 +4911,8 @@ class IotyObjectDetector extends IotyWidget {
     const constraints = {
       video: await this.getVideoDevice()
     };
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then(function (stream) {
-        video.srcObject = stream;
-      });
+    let videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = videoStream;
   }
 
   async attach(ele) {
