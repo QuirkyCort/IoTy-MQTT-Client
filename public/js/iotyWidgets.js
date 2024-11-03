@@ -4961,7 +4961,6 @@ class IotyRemoteObjectDetector extends IotyWidget {
     this.content =
       '<div class="remoteObjectDetector">' +
         '<img src="images/objectDetector.jpg">' +
-        '<img class="hide" src="">' +
       '</div>';
     this.options.type = 'remoteObjectDetector';
     this.widgetName = '#widget-remoteObjectDetector#';
@@ -5026,29 +5025,62 @@ class IotyRemoteObjectDetector extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    let image = this.element.querySelector('img.hide');
+    let image = this.element.querySelector('img');
     image.onload = this.detectObject.bind(this);
     image.src = URL.createObjectURL(
       new Blob([payload])
     );
-    this.flashIndicator()
+    // this.flashIndicator()
   }
 
   async detectObject() {
-    let image = this.element.querySelector('img.hide');
-    let result = await window.detectObjectImage(image);
-    if (result) {
-      main.publish(this.getSetting('resultsTopic'), JSON.stringify(result));
+    let image = this.element.querySelector('img');
+    let results = await window.detectObjectImage(image);
+    if (results) {
+      main.publish(this.getSetting('resultsTopic'), JSON.stringify(results));
+      this.highlightResults(results);
     }
   }
 
-  flashIndicator() {
-    let indicator = this.element.querySelector('img:not(.hide)');
-    indicator.classList.add('flash');
-    setTimeout(function(){
-      indicator.classList.remove('flash');
-    }, 200);
+  highlightResults(results) {
+    let img = this.element.querySelector('img');
+    let div = this.element.querySelector('.remoteObjectDetector');
+    div.querySelectorAll('.highlight').forEach(element => element.remove());
+
+    for (let result of results) {
+      let p = document.createElement('p');
+      p.innerText = result.name;
+
+      let imageAspect = img.naturalWidth / img.naturalHeight;
+      let elementAspect = img.width / img.height;
+      let renderedWidth = img.width;
+      let renderedHeight = img.height;
+      let leftOffset = 0;
+      let topOffset = 0;
+      if (imageAspect > elementAspect) {
+        renderedHeight = img.width / imageAspect;
+        topOffset = (img.height - renderedHeight) / 2;
+      } else {
+        renderedWidth = img.height * imageAspect;
+        leftOffset = (img.width - renderedWidth) / 2;
+      }
+
+      p.style.left = leftOffset + img.offsetLeft + (result.x / img.naturalWidth * renderedWidth) + 'px';
+      p.style.top = topOffset + img.offsetTop + (result.y / img.naturalHeight * renderedHeight) + 'px';
+      p.style.width = (result.w / img.naturalWidth * renderedWidth) + 'px';
+      p.style.height = (result.h / img.naturalHeight * renderedHeight) + 'px';
+      p.classList.add('highlight');
+      div.append(p);
+    }
   }
+
+  // flashIndicator() {
+  //   let indicator = this.element.querySelector('img');
+  //   indicator.classList.add('flash');
+  //   setTimeout(function(){
+  //     indicator.classList.remove('flash');
+  //   }, 200);
+  // }
 }
 
 IOTY_WIDGETS = [

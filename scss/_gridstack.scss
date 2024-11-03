@@ -881,20 +881,26 @@ main {
 
 .grid-stack-item[ioty-type="remoteObjectDetector"] {
   .remoteObjectDetector {
-    height: calc(100% - 1em);
-    width: calc(100% - 1em);
+    height: 100%;
+    width: 100%;
+    background: lightblue;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   img {
-    max-height: 100%;
-    max-width: 100%;
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    object-fit: contain;
   }
 
-  .hide {
-    display: none;
+  .highlight {
+    position: absolute;
+    border: solid 1px red;
+    color: red;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .flash {

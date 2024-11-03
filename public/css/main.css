@@ -893,16 +893,22 @@ main {
   box-sizing: border-box; }
 
 .grid-stack-item[ioty-type="remoteObjectDetector"] .remoteObjectDetector {
-  height: calc(100% - 1em);
-  width: calc(100% - 1em);
+  height: 100%;
+  width: 100%;
+  background: lightblue;
   display: flex;
   justify-content: center;
   align-items: center; }
 .grid-stack-item[ioty-type="remoteObjectDetector"] img {
-  max-height: 100%;
-  max-width: 100%; }
-.grid-stack-item[ioty-type="remoteObjectDetector"] .hide {
-  display: none; }
+  height: calc(100% - 1em);
+  width: calc(100% - 1em);
+  object-fit: contain; }
+.grid-stack-item[ioty-type="remoteObjectDetector"] .highlight {
+  position: absolute;
+  border: solid 1px red;
+  color: red;
+  margin: 0;
+  box-sizing: border-box; }
 .grid-stack-item[ioty-type="remoteObjectDetector"] .flash {
   filter: brightness(1.5); }
 
