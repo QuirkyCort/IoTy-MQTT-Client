@@ -4920,7 +4920,7 @@ class IotyObjectDetector extends IotyWidget {
 
   async attach(ele) {
     super.attach(ele);
-    this.setupCamera();
+    await this.setupCamera();
     this.intervalID = setInterval(this.detectObject.bind(this), 500);
   }
 
