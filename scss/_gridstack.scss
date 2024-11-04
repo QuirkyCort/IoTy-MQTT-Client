@@ -823,20 +823,17 @@ main {
 .grid-stack-item[ioty-type="remoteImageTM"] {
   .remoteImageTM {
     position: relative;
-    height: calc(100% - 1em);
-    width: calc(100% - 1em);
+    height: 100%;
+    width: 100%;
+    background: lightblue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     img {
-      max-height: 100%;
-      max-width: 100%;
-    }
-
-    .hide {
-      display: none;
-    }
-
-    .flash {
-      filter: brightness(1.5);
+      height: calc(100% - 1em);
+      width: calc(100% - 1em);
+      object-fit: contain;
     }
 
     .results {
@@ -901,10 +898,6 @@ main {
     color: red;
     margin: 0;
     box-sizing: border-box;
-  }
-
-  .flash {
-    filter: brightness(1.5);
   }
 }
 

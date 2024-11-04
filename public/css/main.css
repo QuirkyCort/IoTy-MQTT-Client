@@ -855,15 +855,16 @@ main {
 
 .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM {
   position: relative;
-  height: calc(100% - 1em);
-  width: calc(100% - 1em); }
+  height: 100%;
+  width: 100%;
+  background: lightblue;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
   .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM img {
-    max-height: 100%;
-    max-width: 100%; }
-  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .hide {
-    display: none; }
-  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .flash {
-    filter: brightness(1.5); }
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    object-fit: contain; }
   .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .results {
     position: absolute;
     bottom: 0;
@@ -909,8 +910,6 @@ main {
   color: red;
   margin: 0;
   box-sizing: border-box; }
-.grid-stack-item[ioty-type="remoteObjectDetector"] .flash {
-  filter: brightness(1.5); }
 
 .grid-stack-item[ioty-type="heartbeat"] .heartbeat {
   width: 100%;

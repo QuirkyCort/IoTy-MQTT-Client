@@ -4073,7 +4073,6 @@ class IotyRemoteImageTM extends IotyWidget {
     super();
     this.content =
       '<div class="remoteImageTM">' +
-      '<img class="hide" src="">' +
       '<img src="images/imageTM_placeholder.png">' +
       '<div class="results"></div>' +
       '</div>';
@@ -4193,12 +4192,11 @@ class IotyRemoteImageTM extends IotyWidget {
   }
 
   onMessageArrived(payload, topic) {
-    let image = this.element.querySelector('img.hide');
+    let image = this.element.querySelector('img');
     image.onload = this.predict.bind(this);
     image.src = URL.createObjectURL(
       new Blob([payload])
     );
-    this.flashIndicator()
   }
 
   displayResults(results) {
@@ -4228,7 +4226,7 @@ class IotyRemoteImageTM extends IotyWidget {
 
   async predict() {
     if (this.model) {
-      let image = this.element.querySelector('img.hide');
+      let image = this.element.querySelector('img');
       const results = await this.model.predict(image);
 
       this.displayResults(results);
@@ -4264,13 +4262,13 @@ class IotyRemoteImageTM extends IotyWidget {
     }
   }
 
-  flashIndicator() {
-    let indicator = this.element.querySelector('img:not(.hide)');
-    indicator.classList.add('flash');
-    setTimeout(function(){
-      indicator.classList.remove('flash');
-    }, 200);
-  }
+  // flashIndicator() {
+  //   let indicator = this.element.querySelector('img');
+  //   indicator.classList.add('flash');
+  //   setTimeout(function(){
+  //     indicator.classList.remove('flash');
+  //   }, 200);
+  // }
 }
 
 class IotyHeartbeat extends IotyWidget {
