@@ -2308,6 +2308,28 @@ class IotyImage extends IotyWidget {
         help: 'If true, the image will be scaled up to fill the entire widget without changing aspect ratio.',
         save: true
       },
+      {
+        name: 'rotation',
+        title: 'Rotation',
+        type: 'select',
+        options: [
+          ['0 degs', '0'],
+          ['90 degs', '90'],
+          ['180 degs', '180'],
+          ['270 degs', '270'],
+        ],
+        value: '0',
+        help: 'Rotates the image',
+        save: true
+      },
+      {
+        name: 'flip',
+        title: 'Flip image',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the image will be flipped horizontally.',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -2331,6 +2353,12 @@ class IotyImage extends IotyWidget {
       image.classList.add('scale');
     } else {
       image.classList.remove('scale');
+    }
+
+    image.style.transform = 'rotate(' + this.getSetting('rotation') + 'deg)';
+
+    if (this.getSetting('flip') == 'true') {
+      image.style.transform += ' scaleX(-1)';
     }
 
     this.topics = {};
