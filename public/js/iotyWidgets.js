@@ -4101,8 +4101,10 @@ class IotyRemoteImageTM extends IotyWidget {
     super();
     this.content =
       '<div class="remoteImageTM">' +
-      '<img src="images/imageTM_placeholder.png">' +
-      '<div class="results"></div>' +
+        '<img class="actual" src="images/imageTM_placeholder.png">' +
+        '<div class="results"></div>' +
+        '<img class="hidden" src="">' +
+        '<canvas class="hidden"></canvas>' +
       '</div>';
     this.options.type = 'remoteImageTM';
     this.widgetName = '#widget-remoteImageTM#';
@@ -4192,6 +4194,20 @@ class IotyRemoteImageTM extends IotyWidget {
         help: 'If true, results will be displayed on screen.',
         save: true
       },
+      {
+        name: 'rotation',
+        title: 'Rotation',
+        type: 'select',
+        options: [
+          ['0 degs', '0'],
+          ['90 degs', '90'],
+          ['180 degs', '180'],
+          ['270 degs', '270'],
+        ],
+        value: '0',
+        help: 'Rotates the image',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -4219,10 +4235,32 @@ class IotyRemoteImageTM extends IotyWidget {
     this.bytesSubscriptions.push(this.getSetting('dataTopic'));
   }
 
-  onMessageArrived(payload, topic) {
-    let image = this.element.querySelector('img');
+  rotateImage() {
+    let hiddenImage = this.element.querySelector('img.hidden');
+    let canvas = this.element.querySelector('canvas');
+    let image = this.element.querySelector('img.actual');
     image.onload = this.predict.bind(this);
-    image.src = URL.createObjectURL(
+
+    let rotation = Number(this.getSetting('rotation'));
+    if (rotation == 90 || rotation == 270) {
+      canvas.width = hiddenImage.naturalHeight;
+      canvas.height = hiddenImage.naturalWidth;
+    } else {
+      canvas.width = hiddenImage.naturalWidth;
+      canvas.height = hiddenImage.naturalHeight;
+    }
+
+    const ctx = canvas.getContext("2d");
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.rotate(rotation / 180 * Math.PI);
+    ctx.drawImage(hiddenImage, -hiddenImage.naturalWidth/2, -hiddenImage.naturalHeight/2);
+    image.src = canvas.toDataURL();
+  }
+
+  onMessageArrived(payload, topic) {
+    let hiddenImage = this.element.querySelector('img.hidden');
+    hiddenImage.onload = this.rotateImage.bind(this);
+    hiddenImage.src = URL.createObjectURL(
       new Blob([payload])
     );
   }
@@ -4289,14 +4327,6 @@ class IotyRemoteImageTM extends IotyWidget {
       }
     }
   }
-
-  // flashIndicator() {
-  //   let indicator = this.element.querySelector('img');
-  //   indicator.classList.add('flash');
-  //   setTimeout(function(){
-  //     indicator.classList.remove('flash');
-  //   }, 200);
-  // }
 }
 
 class IotyHeartbeat extends IotyWidget {

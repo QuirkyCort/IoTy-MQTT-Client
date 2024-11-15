@@ -836,6 +836,10 @@ main {
       object-fit: contain;
     }
 
+    .hidden {
+      display: none;
+    }
+
     .results {
       position: absolute;
       bottom: 0;

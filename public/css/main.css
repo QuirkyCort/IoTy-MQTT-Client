@@ -865,6 +865,8 @@ main {
     height: calc(100% - 1em);
     width: calc(100% - 1em);
     object-fit: contain; }
+  .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .hidden {
+    display: none; }
   .grid-stack-item[ioty-type="remoteImageTM"] .remoteImageTM .results {
     position: absolute;
     bottom: 0;
