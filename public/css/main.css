@@ -904,6 +904,8 @@ main {
   height: calc(100% - 1em);
   width: calc(100% - 1em);
   object-fit: contain; }
+.grid-stack-item[ioty-type="remoteObjectDetector"] .hidden {
+  display: none; }
 .grid-stack-item[ioty-type="remoteObjectDetector"] .highlight {
   position: absolute;
   border: solid 1px red;

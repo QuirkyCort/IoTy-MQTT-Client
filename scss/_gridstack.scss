@@ -892,6 +892,10 @@ main {
     object-fit: contain;
   }
 
+  .hidden {
+    display: none;
+  }
+
   .highlight {
     position: absolute;
     border: solid 1px red;
