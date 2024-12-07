@@ -2654,7 +2654,7 @@ class IotyRawImage extends IotyWidget {
     }
 
     let xFloor = Math.max(i-1, 0);
-    let xCeil = Math.min(i, palette.length);
+    let xCeil = Math.min(i, palette.length-1);
 
     if (xFloor == xCeil) {
       for (let i=0; i<3; i++) {
