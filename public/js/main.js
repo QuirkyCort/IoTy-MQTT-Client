@@ -708,7 +708,16 @@ var main = new function() {
         for (let name in widget.settings) {
           ele.widget.setSetting(name, widget.settings[name]);
         }
-        ele.widget.processSettings();
+
+        if (ele.widget.processSettings.constructor.name == 'AsyncFunction') {
+          try {
+            await ele.widget.processSettings();
+          } catch (e) {
+            console.log(e);
+          }
+        } else {
+          ele.widget.processSettings();
+        }
       }
     }
     self.disableAddWidgetEvent = false;

@@ -4977,9 +4977,9 @@ class IotyObjectDetector extends IotyWidget {
     this.intervalID = setInterval(this.detectObject.bind(this), 500);
   }
 
-  processSettings() {
+  async processSettings() {
     super.processSettings();
-    this.setupCamera();
+    await this.setupCamera();
   }
 
   async detectObject() {
@@ -5221,10 +5221,15 @@ async function attachIotyWidget(ele) {
   }
 
   if (widget.attach.constructor.name == 'AsyncFunction') {
-    await widget.attach(ele);
+    try {
+      await widget.attach(ele);
+    } catch (e) {
+      console.log(e);
+    }
   } else {
     widget.attach(ele);
   }
+
   ele.widget = widget;
   widget.removePlaceholder();
 }
