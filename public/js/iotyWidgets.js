@@ -2586,23 +2586,27 @@ class IotyRawImage extends IotyWidget {
 
     this.subscriptions.push(this.getSetting('controlTopic'));
     this.bytesSubscriptions.push(this.getSetting('dataTopic'));
+    this.canvasResize(this.element.querySelector('canvas'));
   }
 
-  canvasResize(entries) {
+  canvasResizeObserver(entries) {
     for (let entry of entries) {
-      let canvas = entry.target;
-      let imageWidth = this.width;
-      let imageHeight = this.height;
-      let clientWidth = canvas.clientWidth;
-      let clientHeight = canvas.clientHeight;
+      this.canvasResize(entry.target);
+    }
+  }
 
-      if (clientWidth / clientHeight > imageWidth / imageHeight) {
-        canvas.width = clientHeight * imageWidth / imageHeight;
-        canvas.height = clientHeight;
-      } else {
-        canvas.width = clientWidth;
-        canvas.height = clientWidth * imageHeight / imageWidth
-      }
+  canvasResize(canvas) {
+    let imageWidth = this.width;
+    let imageHeight = this.height;
+    let clientWidth = canvas.clientWidth;
+    let clientHeight = canvas.clientHeight;
+
+    if (clientWidth / clientHeight > imageWidth / imageHeight) {
+      canvas.width = clientHeight * imageWidth / imageHeight;
+      canvas.height = clientHeight;
+    } else {
+      canvas.width = clientWidth;
+      canvas.height = clientWidth * imageHeight / imageWidth
     }
   }
 
