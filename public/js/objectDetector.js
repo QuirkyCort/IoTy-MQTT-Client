@@ -1,12 +1,12 @@
-import { ObjectDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.2";
+import { ObjectDetector, FilesetResolver } from "../tasks-vision-0.10.2/tasks-vision.js";
 
 let objectDetectorImage;
 let objectDetectorVideo;
 const initializeObjectDetector = async () => {
-    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.2/wasm");
+    const vision = await FilesetResolver.forVisionTasks("tasks-vision-0.10.2/wasm");
     objectDetectorImage = await ObjectDetector.createFromOptions(vision, {
         baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`,
+            modelAssetPath: `efficientdet_lite0/float16/efficientdet_lite0.tflite`,
             delegate: "GPU"
         },
         scoreThreshold: 0.5,
@@ -14,7 +14,7 @@ const initializeObjectDetector = async () => {
     });
     objectDetectorVideo = await ObjectDetector.createFromOptions(vision, {
         baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite`,
+            modelAssetPath: `efficientdet_lite0/float16/efficientdet_lite0.tflite`,
             delegate: "GPU"
         },
         scoreThreshold: 0.5,
