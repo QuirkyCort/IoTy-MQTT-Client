@@ -4590,7 +4590,7 @@ class IotyGraphXY extends IotyWidget {
       },
       {
         name: 'height',
-        title: 'Height of the Image',
+        title: 'Height of the Graph',
         type: 'text',
         value: '1000',
         help: 'Used for both cartesian and polar graphs.',
