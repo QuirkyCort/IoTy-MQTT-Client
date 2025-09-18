@@ -2535,6 +2535,20 @@ class IotyRawImage extends IotyWidget {
         help: 'This can also be set via the control topic using keyword "scaling X". Valid X are "nearestNeighbour", "bilinear".',
         save: true
       },
+      {
+        name: 'rotation',
+        title: 'Rotation',
+        type: 'select',
+        options: [
+          ['0 degs', '0'],
+          ['90 degs', '90'],
+          ['180 degs', '180'],
+          ['270 degs', '270'],
+        ],
+        value: '0',
+        help: 'Rotates the image',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -2550,12 +2564,16 @@ class IotyRawImage extends IotyWidget {
   processSettings() {
     super.processSettings();
 
+    let canvas = this.element.querySelector('canvas');
+
     this.width = Number(this.getSetting('width'));
     this.height = Number(this.getSetting('height'));
     this.depth = this.getSetting('depth');
     this.grayDisplay = this.getSetting('grayDisplay');
     this.scaling = this.getSetting('scaling');
     this.rangeMode = this.getSetting('rangeMode');
+
+    canvas.style.transform = 'rotate(' + this.getSetting('rotation') + 'deg)';
 
     const uint8 = ['uint8', 'rgb16BE', 'rgb16LE', 'rgb24'];
     const int8 = ['int8'];
