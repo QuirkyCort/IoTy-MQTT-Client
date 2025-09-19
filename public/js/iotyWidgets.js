@@ -2549,6 +2549,14 @@ class IotyRawImage extends IotyWidget {
         help: 'Rotates the image',
         save: true
       },
+      {
+        name: 'flip',
+        title: 'Flip image',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the image will be flipped horizontally.',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -2574,6 +2582,9 @@ class IotyRawImage extends IotyWidget {
     this.rangeMode = this.getSetting('rangeMode');
 
     canvas.style.transform = 'rotate(' + this.getSetting('rotation') + 'deg)';
+    if (this.getSetting('flip') == 'true') {
+      canvas.style.transform += ' scaleX(-1)';
+    }
 
     const uint8 = ['uint8', 'rgb16BE', 'rgb16LE', 'rgb24'];
     const int8 = ['int8'];
@@ -4619,7 +4630,7 @@ class IotyGraphXY extends IotyWidget {
         title: 'Point Size',
         type: 'text',
         value: '5',
-        help: 'Sets the size each drawn point.',
+        help: 'Sets the size of each drawn point.',
         save: true
       },
       {
@@ -4633,6 +4644,32 @@ class IotyGraphXY extends IotyWidget {
         ],
         value: 'cartesian',
         help: 'Sets the type of graph',
+        save: true
+      },
+      {
+        name: 'polarDirection',
+        title: 'Polar Direction',
+        type: 'select',
+        options: [
+          ['Clockwise', 'cw'],
+          ['Counterclockwise', 'ccw'],
+        ],
+        value: 'ccw',
+        help: 'Sets the direction of the positive angle in a polar graph',
+        save: true
+      },
+      {
+        name: 'polarZero',
+        title: 'Polar Zero',
+        type: 'select',
+        options: [
+          ['North', '90'],
+          ['South', '-90'],
+          ['East', '0'],
+          ['West', '180'],
+        ],
+        value: '0',
+        help: 'Sets the direction of 0 deg in a polar graph',
         save: true
       },
       {
@@ -4679,6 +4716,11 @@ class IotyGraphXY extends IotyWidget {
     this.type = this.getSetting('type');
     this.axisType = this.getSetting('axisType');
     this.gridSize = Number(this.getSetting('gridSize'));
+    this.polarOffset = Number(this.getSetting('polarZero')) / 180 * Math.PI;
+    this.polarity = 1;
+    if (this.getSetting('polarDirection') == 'cw') {
+      this.polarity = -1;
+    }
 
     this.topics = {};
     for (let topic of ['dataTopic']) {
@@ -4822,8 +4864,10 @@ class IotyGraphXY extends IotyWidget {
   drawPointPolarRadian(ctx, point) {
     const rectSize = this.pointSize;
 
-    let x = Math.cos(point[0]) * point[1];
-    let y = Math.sin(point[0]) * point[1];
+    let angle = point[0] * this.polarity + this.polarOffset;
+
+    let x = Math.cos(angle) * point[1];
+    let y = Math.sin(angle) * point[1];
 
     this.drawPoint(ctx, [x, y]);
   }
