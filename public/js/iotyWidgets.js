@@ -3024,6 +3024,22 @@ class IotyMap extends IotyWidget {
         help: 'Publish to this topic to control the map display.',
         save: true
       },
+      {
+        name: 'sendClickLocation',
+        title: 'Send Click Location',
+        type: 'check',
+        value: 'false',
+        help: 'If true, the map will send the click location to the click location topic.',
+        save: true
+      },
+      {
+        name: 'clickLocationTopic',
+        title: 'Click Location Topic',
+        type: 'text',
+        value: '',
+        help: 'The click location will be published to this topic in the format "lat, long".',
+        save: true
+      },
     ];
     this.settings.push(...settings);
   }
@@ -3046,6 +3062,29 @@ class IotyMap extends IotyWidget {
         streetViewControl: false,
         mapId: 'e8dbaec8731e8c86'
       });
+
+      this.map.addListener('click', (mapsMouseEvent) => {
+        if (main.mode != main.MODE_RUN) {
+          return;
+        }
+        if (this.getSetting('sendClickLocation') != 'true') {
+          return;
+        }
+        let result = mapsMouseEvent.latLng.lat() + ', ' + mapsMouseEvent.latLng.lng();
+        main.publish(this.getSetting('clickLocationTopic'), result);
+
+        if (this.clickMarker) {
+          this.clickMarker.setMap(null);
+        }
+        const pinBackground = new PinElement({
+          background: '#FBBC04',
+        });
+        this.clickMarker = new AdvancedMarkerElement({
+          position: mapsMouseEvent.latLng,
+          map: this.map,
+          content: pinBackground,
+        });
+      });
     }
 
     (initMap.bind(this))();
@@ -3059,6 +3098,13 @@ class IotyMap extends IotyWidget {
       this.topics[topic] = this.getSetting(topic);
       if (this.getSetting(topic).trim() != '') {
         this.subscriptions.push(this.getSetting(topic));
+      }
+    }
+
+    if (this.getSetting('sendClickLocation') != 'true') {
+      if (this.clickMarker) {
+        this.clickMarker.setMap(null);
+        this.clickMarker = null;
       }
     }
   }
@@ -3112,7 +3158,7 @@ class IotyMap extends IotyWidget {
     }
 
     if (markerStrings.length > 3) {
-      marker.content = pin.element;
+      marker.content = pin;
     }
 
     if (markerStrings.length > 4) {
@@ -3172,7 +3218,7 @@ class IotyMap extends IotyWidget {
       percentBox.append(percentBar);
       pin.element.append(percentBox);
     }
-    markerConfig.content = pin.element;
+    markerConfig.content = pin;
 
     let marker = new this.AdvancedMarkerElement(markerConfig);
 
