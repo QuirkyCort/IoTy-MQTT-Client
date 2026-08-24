@@ -320,6 +320,10 @@ var main = new function() {
       let menuItems = [
         {html: i18n.get('#main-connect#'), line: false, callback: self.connectDialog },
         {html: i18n.get('#main-disconnect#'), line: false, callback: self.disconnect},
+        {html: i18n.get('#main-local_connect#'), line: false, callback: self.localConnectDialog },
+        {html: i18n.get('#main-local_disconnect#'), line: false, callback: self.localDisconnectDialog },
+        {html: i18n.get('#main-download_app#'), line: false, callback: self.downloadAppDialog },
+        {html: i18n.get('#main-upload_app#'), line: false, callback: self.uploadAppDialog },
         {html: i18n.get('#main-get_link#'), line: false, callback: self.getLink },
       ];
 
@@ -431,6 +435,112 @@ var main = new function() {
     });
     self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
     self.setLastConnectSuccess('false');
+  };
+
+  this.localConnectDialog = function() {
+    let $body = $(
+      '<div>' +
+        '<p>' +
+          'Local connection allows you to connect to a device via serial or Bluetooth.' +
+          'This is useful when internet access is not available.' +
+        '</p>' +
+      '</div>'
+    );
+
+    let $buttons = $(
+      '<button type="button" class="cancel btn-light">Cancel</button>' +
+      '<button type="button" class="serial btn-success">Connect Serial</button>' +
+      '<button type="button" class="bluetooth btn-success">Connect Bluetooth</button>'
+    );
+
+    let $dialog = dialog(i18n.replace('#main-local_connect#'), $body, $buttons);
+
+    $buttons.siblings('.cancel').click(function() { $dialog.close(); });
+    $buttons.siblings('.serial').click(function() { 
+      self.localSerialConnect(); 
+      $dialog.close();
+    });
+    $buttons.siblings('.bluetooth').click(function() {
+      self.localBluetoothConnect();
+      $dialog.close();
+    });
+  };
+
+  this.localSerialConnect = function() {
+    console.log('Local Serial Connect');
+  };
+
+  this.localBluetoothConnect = function() {
+    console.log('Local Bluetooth Connect');
+  };
+
+  this.localDisconnectDialog = function() {
+    let $body = $(
+      '<div>' +
+        '<p>' +
+          'Disconnect from a serial or Bluetooth connection.' +
+        '</p>' +
+      '</div>'
+    );
+
+    let $buttons = $(
+      '<button type="button" class="cancel btn-light">Cancel</button>' +
+      '<button type="button" class="serial btn-warning">Disconnect Serial</button>' +
+      '<button type="button" class="bluetooth btn-warning">Disconnect Bluetooth</button>'
+    );
+
+    let $dialog = dialog(i18n.replace('#main-local_disconnect#'), $body, $buttons);
+
+    $buttons.siblings('.cancel').click(function() { $dialog.close(); });
+    $buttons.siblings('.serial').click(function() { 
+      self.localSerialDisconnect(); 
+      $dialog.close();
+    });
+    $buttons.siblings('.bluetooth').click(function() {
+      self.localBluetoothDisconnect();
+      $dialog.close();
+    });
+  };
+
+  this.localSerialDisconnect = function() {
+    console.log('Local Serial Disconnect');
+  };
+
+  this.localBluetoothDisconnect = function() {
+    console.log('Local Bluetooth Disconnect');
+  };
+
+  // Download to single file
+  this.downloadFile = function(filename, content, mimetype) {
+    let hiddenElement = document.createElement('a');
+    hiddenElement.href = 'data:' + mimetype + ';base64,' + content;
+    hiddenElement.target = '_blank';
+    hiddenElement.download = filename;
+    hiddenElement.dispatchEvent(new MouseEvent('click'));
+  }
+
+  this.downloadAppDialog = function() {
+    let json = self.getJSON();
+
+    self.downloadFile('app.json', btoa(json), 'application/json');
+  }
+
+  this.uploadAppDialog = function() {
+    let hiddenElement = document.createElement('input');
+    hiddenElement.type = 'file';
+    hiddenElement.accept = 'application/json';
+    hiddenElement.dispatchEvent(new MouseEvent('click'));
+    hiddenElement.addEventListener('change', function(e){
+      self.loadFromComputerJson(e.target.files[0]);
+    });
+  }
+
+  this.loadFromComputerJson = function(file) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      self.loadJSON(this.result);
+    };
+    reader.readAsText(file);
   };
 
   this.setLastConnectSuccess = function(status) {

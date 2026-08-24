@@ -2,8 +2,17 @@ let MSGS = {
   '#main-connect#': {
     en: 'Connect',
   },
-  '#main-download#': {
-    en: 'Download to device',
+  '#main-local_connect#': {
+    en: 'Local Connect',
+  },
+  '#main-local_disconnect#': {
+    en: 'Local Disconnect',
+  },
+  '#main-download_app#': {
+    en: 'Download App as JSON',
+  },
+  '#main-upload_app#': {
+    en: 'Upload App from JSON',
   },
   '#main-erase#': {
     en: 'Erase device',
