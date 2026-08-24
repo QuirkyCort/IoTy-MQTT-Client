@@ -467,7 +467,7 @@ var main = new function() {
   };
 
   this.localSerialConnect = function() {
-    console.log('Local Serial Connect');
+    serial.connectDialog();
   };
 
   this.localBluetoothConnect = function() {
@@ -503,7 +503,7 @@ var main = new function() {
   };
 
   this.localSerialDisconnect = function() {
-    console.log('Local Serial Disconnect');
+    serial.disconnect();
   };
 
   this.localBluetoothDisconnect = function() {
@@ -612,11 +612,45 @@ var main = new function() {
     }
   };
 
+  this.parseSerial = function(text) {
+    let lines = text.split('\n');
+    for (let line of lines) {
+      if (line.trim() == '') {
+        continue;
+      }
+      let topic, payload;
+      try {
+        let arr = JSON.parse(line);
+        if (arr instanceof Array && arr.length == 2) {
+          topic = arr[0];
+          payload = atob(arr[1]);
+        }
+      } catch (error) {
+        // Some errors are expected, as the device may print debug messages that are not JSON.
+        console.error('Error parsing serial message:', error);
+      }
+      if (topic && payload) {
+        self.onMessageArrived({
+          destinationName: topic,
+          payloadString: payload
+        });
+      }
+    }
+  };
+
   this.publish = function(topic, payload) {
     if (topic.trim() != '' && self.connected) {
-      let message = new Paho.MQTT.Message(payload);
-      message.destinationName = topic;
-      self.client.send(message);
+      if (self.client && self.client.isConnected()) {
+        let message = new Paho.MQTT.Message(payload);
+        message.destinationName = topic;
+        self.client.send(message);
+      }
+
+      if (serial.isConnected) {
+        payload = btoa(payload);
+        let message = JSON.stringify([topic, payload]);
+        serial.sendSerial(message);
+      }
     }
   };
 
@@ -672,8 +706,10 @@ var main = new function() {
       }
     }
 
-    for (let subscription of newSubscription) {
-      self.client.subscribe(subscription);
+    if (self.client && self.client.isConnected()) {
+      for (let subscription of newSubscription) {
+        self.client.subscribe(subscription);
+      }
     }
 
     this.subscriptions = newSubscription;
