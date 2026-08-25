@@ -103,7 +103,6 @@ var serial = new function() {
 
       self.port.ondisconnect = function(){
         main.setConnectStatus(main.STATUS_DISCONNECTED);
-        main.connected = false;
         self.isConnected = false;
         self.port = null;
         self.pythonSerial = null;
@@ -116,7 +115,6 @@ var serial = new function() {
       self.setupReadLoop();
 
       main.setConnectStatus(main.STATUS_CONNECTED);
-      main.connected = true;
       self.isConnected = true;
       self.writeEnable = true;
     } catch (error) {
@@ -190,7 +188,6 @@ var serial = new function() {
     await self.pythonSerial.closePort();
 
     main.setConnectStatus(main.STATUS_DISCONNECTED);
-    main.connected = false;
     self.isConnected = false;
     self.port = null;
     self.pythonSerial = null;

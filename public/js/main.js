@@ -457,21 +457,13 @@ var main = new function() {
 
     $buttons.siblings('.cancel').click(function() { $dialog.close(); });
     $buttons.siblings('.serial').click(function() { 
-      self.localSerialConnect(); 
+      serial.connectDialog();
       $dialog.close();
     });
     $buttons.siblings('.bluetooth').click(function() {
-      self.localBluetoothConnect();
+      ble.connect();
       $dialog.close();
     });
-  };
-
-  this.localSerialConnect = function() {
-    serial.connectDialog();
-  };
-
-  this.localBluetoothConnect = function() {
-    console.log('Local Bluetooth Connect');
   };
 
   this.localDisconnectDialog = function() {
@@ -493,21 +485,13 @@ var main = new function() {
 
     $buttons.siblings('.cancel').click(function() { $dialog.close(); });
     $buttons.siblings('.serial').click(function() { 
-      self.localSerialDisconnect(); 
+      serial.disconnect();
       $dialog.close();
     });
     $buttons.siblings('.bluetooth').click(function() {
-      self.localBluetoothDisconnect();
+      ble.disconnect();
       $dialog.close();
     });
-  };
-
-  this.localSerialDisconnect = function() {
-    serial.disconnect();
-  };
-
-  this.localBluetoothDisconnect = function() {
-    console.log('Local Bluetooth Disconnect');
   };
 
   // Download to single file
@@ -644,10 +628,15 @@ var main = new function() {
         self.client.send(message);
       }
 
+      payload = btoa(payload);
+      let message = JSON.stringify([topic, payload]);
+
       if (serial.isConnected) {
-        payload = btoa(payload);
-        let message = JSON.stringify([topic, payload]);
         serial.sendSerial(message);
+      }
+
+      if (ble.isConnected) {
+        ble.sendSerial(message);
       }
     }
   };
@@ -925,9 +914,11 @@ var main = new function() {
     if (status == self.STATUS_CONNECTED) {
       self.$connectStatus.text('Connected');
       self.$connectStatus.addClass('connected');
+      self.connected = true;
     } else if (status == self.STATUS_DISCONNECTED) {
       self.$connectStatus.text('Disconnected');
       self.$connectStatus.removeClass('connected');
+      self.connected = false;
     }
   };
 }
