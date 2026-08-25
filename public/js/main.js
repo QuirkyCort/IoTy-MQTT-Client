@@ -612,29 +612,27 @@ var main = new function() {
     }
   };
 
-  this.parseSerial = function(text) {
-    let lines = text.split('\n');
-    for (let line of lines) {
-      if (line.trim() == '') {
-        continue;
+  this.parseJsonMsg = function(line) {
+    if (line.trim() == '') {
+      return;
+    }
+
+    let topic, payload;
+    try {
+      let arr = JSON.parse(line);
+      if (arr instanceof Array && arr.length == 2) {
+        topic = arr[0];
+        payload = atob(arr[1]);
       }
-      let topic, payload;
-      try {
-        let arr = JSON.parse(line);
-        if (arr instanceof Array && arr.length == 2) {
-          topic = arr[0];
-          payload = atob(arr[1]);
-        }
-      } catch (error) {
-        // Some errors are expected, as the device may print debug messages that are not JSON.
-        console.error('Error parsing serial message:', error);
-      }
-      if (topic && payload) {
-        self.onMessageArrived({
-          destinationName: topic,
-          payloadString: payload
-        });
-      }
+    } catch (error) {
+      // Some errors are expected, as the device may print debug messages that are not JSON.
+      console.error('Error parsing serial message:', error);
+    }
+    if (topic && payload) {
+      self.onMessageArrived({
+        destinationName: topic,
+        payloadString: payload
+      });
     }
   };
 

@@ -1,6 +1,8 @@
 var serial = new function() {
   var self = this;
 
+  this.serialBuffer = '';
+
   this.version = undefined;
   this.name = '';
 
@@ -124,8 +126,21 @@ var serial = new function() {
 
   this.setupReadLoop = function() {
     self.pythonSerial.readLoop(function(text){
-      main.parseSerial(text);
+      self.parseSerial(text);
     });
+  };
+
+  this.parseSerial = function(text) {
+    self.serialBuffer += text;
+    while (true) {
+      let index = self.serialBuffer.indexOf('\n');
+      if (index == -1) {
+        break;
+      }
+      let line = self.serialBuffer.slice(0, index);
+      self.serialBuffer = self.serialBuffer.slice(index + 1);
+      main.parseJsonMsg(line);
+    }
   };
 
   this.sendSerial = async function(text) {
