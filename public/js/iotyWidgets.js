@@ -3403,7 +3403,7 @@ class IotySpeech extends IotyWidget {
     super.processSettings();
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
+    // const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
     const glow = this.element.querySelector('.glow');
 
     if (typeof SpeechRecognition == 'undefined') {
@@ -3415,12 +3415,12 @@ class IotySpeech extends IotyWidget {
 
     this.words = this.getSetting('grammar').split(',').map(word => word.trim());
 
-    if (SpeechGrammarList && this.getSetting('useGrammar') == 'true') {
-      let speechRecognitionList = new SpeechGrammarList();
-      let grammar = '#JSGF V1.0; grammar colors; public <color> = ' + this.words.join('|') + ' ;'
-      speechRecognitionList.addFromString(grammar, 1);
-      this.recognition.grammars = speechRecognitionList;
-    }
+    // if (SpeechGrammarList && this.getSetting('useGrammar') == 'true') {
+    //   let speechRecognitionList = new SpeechGrammarList();
+    //   let grammar = '#JSGF V1.0; grammar colors; public <color> = ' + this.words.join('|') + ' ;'
+    //   speechRecognitionList.addFromString(grammar, 1);
+    //   this.recognition.grammars = speechRecognitionList;
+    // }
     this.recognition.continuous = false;
     this.recognition.lang = 'en-US';
     this.recognition.interimResults = false;
