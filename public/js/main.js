@@ -427,14 +427,18 @@ var main = new function() {
     self.client = new Paho.MQTT.Client(hostname, clientID);
     self.client.onConnectionLost = self.onConnectionLost;
     self.client.onMessageArrived = self.onMessageArrived;
-    self.client.connect({
-      onSuccess: self.onConnect,
-      userName: self.getSetting(self.connectSettings, 'username'),
-      password: self.getSetting(self.connectSettings, 'password'),
-      reconnect: true
-    });
-    self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
-    self.setLastConnectSuccess('false');
+    try {
+      self.client.connect({
+        onSuccess: self.onConnect,
+        userName: self.getSetting(self.connectSettings, 'username'),
+        password: self.getSetting(self.connectSettings, 'password'),
+        reconnect: true
+      });
+      self.connectTimeoutID = window.setTimeout(self.connectTimeout, 5 * 1000);
+      self.setLastConnectSuccess('false');
+    } catch (err) {
+      self.connectionError(err);
+    }
   };
 
   this.localConnectDialog = function() {
@@ -545,6 +549,11 @@ var main = new function() {
 
   this.connectTimeout = function() {
     self.$connectWindow.$body.text('Connection timed out. Make sure your username and password are correct.');
+    self.$connectWindow.$buttonsRow.removeClass('hide');
+  };
+
+  this.connectionError = function(err) {
+    self.$connectWindow.$body.text('Connection Error.' + err);
     self.$connectWindow.$buttonsRow.removeClass('hide');
   };
 
