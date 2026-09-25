@@ -412,7 +412,7 @@ class IotyHSlider extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The slider widget will publish its value to the specified topic when changed.',
+        value: 'The slider widget will publish its value (int) to the specified topic when changed.',
         save: false
       },
       {
@@ -552,7 +552,7 @@ class IotyVSlider extends IotyWidget {
         name: 'description',
         title: 'Description',
         type: 'label',
-        value: 'The slider widget will publish its value to the specified topic when changed.',
+        value: 'The slider widget will publish its value (int) to the specified topic when changed.',
         save: false
       },
       {
@@ -912,7 +912,7 @@ class IotyStatus extends IotyWidget {
         name: 'rgbHex',
         title: 'RGB Hex Code',
         type: 'label',
-        value: 'Eg. "#FF000" (Red), "#00FF00" (Green), "#FFFFFF" (White)',
+        value: 'Eg. "#FF0000" (Red), "#00FF00" (Green), "#FFFFFF" (White)',
         save: false
       },
       {
@@ -1180,7 +1180,7 @@ class IotyColor extends IotyWidget {
         title: 'Send combined value',
         type: 'check',
         value: 'false',
-        help: 'Publish all the RGB values (comma separated float) to the first topic.',
+        help: 'Publish all the RGB values (comma separated int) to the first topic.',
         save: true
       },
       {
