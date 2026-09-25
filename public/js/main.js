@@ -553,7 +553,7 @@ var main = new function() {
   };
 
   this.connectionError = function(err) {
-    self.$connectWindow.$body.text('Connection Error.' + err);
+    self.$connectWindow.$body.text('Connection Error: ' + err);
     self.$connectWindow.$buttonsRow.removeClass('hide');
   };
 
