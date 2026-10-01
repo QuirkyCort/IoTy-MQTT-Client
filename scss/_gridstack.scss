@@ -909,6 +909,36 @@ main {
   }
 }
 
+.grid-stack-item[ioty-type="customObjectDetector"] {
+  .customObjectDetector {
+    position: relative;
+    height: calc(100% - 1em);
+    width: calc(100% - 1em);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  video {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  img {
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  .highlight {
+    position: absolute;
+    border: solid 1px red;
+    color: red;
+    margin: 0;
+    box-sizing: border-box;
+  }
+}
+
 .grid-stack-item[ioty-type="heartbeat"] {
   .heartbeat {
     width: 100%;

@@ -116,6 +116,9 @@ let MSGS = {
   '#widget-remoteObjectDetector#': {
     en: 'Object Detector (Remote)',
   },
+  '#widget-customObjectDetector#': {
+    en: 'Custom Object Detector',
+  },
   '#widget-heartbeat#': {
     en: 'Heartbeat',
   },

@@ -5284,6 +5284,231 @@ class IotyRemoteObjectDetector extends IotyWidget {
   }
 }
 
+class IotyCustomObjectDetector extends IotyWidget {
+  constructor() {
+    super();
+    this.content =
+      '<div class="customObjectDetector">' +
+        '<div class="wrapper"></div><div class="results"></div>' +
+        '<img class="placeholder" src="images/objectDetector.jpg">' +
+        '<video autoplay playsinline></video>' +
+      '</div>';
+    this.options.type = 'customObjectDetector';
+    this.widgetName = '#widget-customObjectDetector#';
+
+    let settings = [
+      {
+        name: 'description',
+        title: 'Description',
+        type: 'html',
+        value: 
+          '<p>The object detector widget will perform object detection on the camera images every 0.5s, then publish the results.</p>' +
+          '<p>To use this widget, you must first train a model on Edge Impulse and deploy it to WebAssembly (WASM), this will provide a zip file. ' +
+          'Extract the wasm file from the zip file, upload it somewhere, then provide the URL to the WASM file in the settings below.</p>',
+        save: false
+      },
+      {
+        name: 'url',
+        title: 'WebAssembly (WASM) URL',
+        type: 'text',
+        value: '',
+        help: 'Link to the WASM file provided by Edge Impulse.',
+        save: true
+      },
+      {
+        name: 'cameraIndex',
+        title: 'Camera Selection',
+        type: 'text',
+        value: '0',
+        help: 'Determines which camera is used. 0 will be the first camera, 1 will be second camera, etc.',
+        save: true
+      },
+      {
+        name: 'topic',
+        title: 'MQTT Topic',
+        type: 'text',
+        value: '',
+        help: 'Results of image detection will be published to this topic.',
+        save: true
+      },
+      {
+        name: 'resultsGuide',
+        title: 'Results Format',
+        type: 'html',
+        value:
+        '<p>Results is a list in JSON format. Each item in the list contains:</p>' +
+        '<ul>' +
+          '<li>name: (string) Name of the class</li>' +
+          '<li>score: (float) Confidence level of the detection</li>' +
+          '<li>x, y, w, h: (int) Bounding box</li>' +
+        '</ul>',
+        save: false
+      },
+    ];
+    this.settings.push(...settings);
+  }
+
+  async getVideoDevice() {
+    let index = 0;
+    try {
+      index = Number(this.getSetting('cameraIndex'))
+    } finally {
+    }
+
+    let devices = await navigator.mediaDevices.enumerateDevices();
+    let videoDevices = [];
+    for (let device of devices) {
+      if (device.kind == 'videoinput') {
+        videoDevices.push(device.deviceId);
+      }
+    }
+
+    if (index < videoDevices.length) {
+      return { deviceId: videoDevices[index] };
+    } else {
+      return true;
+    }
+  }
+
+  async setupCamera() {
+    let video = this.element.querySelector('video');
+
+    if (video.srcObject) {
+      for (let track of video.srcObject.getTracks()) {
+        track.stop();
+      }
+    }
+
+    const constraints = {
+      video: await this.getVideoDevice()
+    };
+    let videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = videoStream;
+  }
+
+  async setupEdgeImpulse() {
+    this.modelParameters = {};
+    this.classifier = new EdgeImpulseClassifier(this.modelParameters);
+    const existingScript = document.querySelector('#edge-impulse-script');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    EI_Module = undefined;
+    wasmBinaryFile = this.getSetting('url').trim();
+
+    if (wasmBinaryFile == '') {
+      return;
+    }
+
+    const s = document.createElement('script');
+    s.id = 'edge-impulse-script';
+    s.type = 'module';
+    s.src = 'js/edge-impulse-standalone.js?q=' + Date.now();
+    s.onload = this.classifier.init.bind(this.classifier);
+    // console.log('Loading EI_Module');
+    document.querySelector('body').appendChild(s)
+  }
+
+  async attach(ele) {
+    super.attach(ele);
+    await this.setupCamera();
+    this.intervalID = setInterval(this.detectObject.bind(this), 500);
+  }
+
+  async processSettings() {
+    super.processSettings();
+    await this.setupCamera();
+    await this.setupEdgeImpulse();
+  }
+
+  async detectObject() {
+    if (main.mode == main.MODE_RUN) {
+      let vid = this.element.querySelector('video');
+      
+      if (this.modelParameters['properties'] == undefined) {
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+
+      // Calculate crop parameters
+      const properties = this.modelParameters['properties'];
+      canvas.width = properties.input_width;
+      canvas.height = properties.input_height;
+      const aspectRatio = properties.input_width / properties.input_height;
+
+      let cropHeight = vid.videoHeight;
+      let cropY = 0;
+      let cropWidth = Math.floor(cropHeight * aspectRatio);
+      let cropX = Math.floor((vid.videoWidth - cropWidth) / 2);
+
+      if (cropWidth > vid.videoWidth) {
+        cropWidth = vid.videoWidth;
+        cropHeight = Math.floor(cropWidth / aspectRatio);
+        cropX = 0;
+        cropY = Math.floor((vid.videoHeight - cropHeight) / 2);
+      }
+
+      // Draw video frame to canvas and get image data
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(
+        vid,
+        cropX, cropY, cropWidth, cropHeight,
+        0, 0, canvas.width, canvas.height
+      );
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let imgArray = new Float32Array(properties.input_width * properties.input_height);
+
+      for (let i=0; i<imageData.data.length/4; i++) {
+        imgArray[i] = imageData.data[i*4] << 16 | imageData.data[i*4+1] << 8 | imageData.data[i*4+2];
+      }
+
+      let results = this.classifier.classifyFromFloat32(imgArray)['results'];
+      // console.log('EI results', results);
+      let reformatedResults = [];
+      for (let result of results) {
+        reformatedResults.push({
+          name: result['label'],
+          score: result['value'],
+          x: result['x'] / properties.input_width * cropWidth + cropX,
+          y: result['y'] / properties.input_height * cropHeight + cropY,
+          w: result['width'] / properties.input_width * cropWidth,
+          h: result['height'] / properties.input_height * cropHeight
+        });
+      }
+      // console.log('Reformatted results', reformatedResults);
+
+      if (reformatedResults) {
+        main.publish(this.getSetting('topic'), JSON.stringify(reformatedResults));
+        this.highlightResults(reformatedResults);
+      }
+    }
+  }
+
+  highlightResults(results) {
+    let vid = this.element.querySelector('video');
+    let div = this.element.querySelector('.customObjectDetector');
+    div.querySelectorAll('.highlight').forEach(element => element.remove());
+
+    for (let result of results) {
+      let p = document.createElement('p');
+      p.innerText = result.name;
+      p.style.left = vid.offsetLeft + (result.x / vid.videoWidth * vid.offsetWidth) + 'px';
+      p.style.top = vid.offsetTop + (result.y / vid.videoHeight * vid.offsetHeight) + 'px';
+      p.style.width = (result.w / vid.videoWidth * vid.offsetWidth) + 'px';
+      p.style.height = (result.h / vid.videoHeight * vid.offsetHeight) + 'px';
+      p.classList.add('highlight');
+      div.append(p);
+    }
+  }
+
+  destroy() {
+    clearInterval(this.intervalID);
+  }
+}
+
 IOTY_WIDGETS = [
   { type: 'button', widgetClass: IotyButton},
   { type: 'switch', widgetClass: IotySwitch},
@@ -5315,6 +5540,7 @@ IOTY_WIDGETS = [
   { type: 'remoteImageTM', widgetClass: IotyRemoteImageTM},
   { type: 'objectDetector', widgetClass: IotyObjectDetector},
   { type: 'remoteObjectDetector', widgetClass: IotyRemoteObjectDetector},
+  { type: 'customObjectDetector', widgetClass: IotyCustomObjectDetector},
   { type: 'graphXY', widgetClass: IotyGraphXY},
 ];
 
