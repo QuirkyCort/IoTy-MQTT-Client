@@ -75,8 +75,18 @@ var main = new function() {
       self.activateLinkMode();
     }
 
+    document.addEventListener('contextmenu', self.contextMenuHandler);
+
     // self.checkNotificationPermission();
   };
+
+  this.contextMenuHandler = function(e) {
+    if (self.mode == self.MODE_RUN) {
+      e.preventDefault();
+      return false;
+    }
+    return true;
+  }
 
   // this.checkNotificationPermission = function() {
   //   if (!('Notification' in window)) {
