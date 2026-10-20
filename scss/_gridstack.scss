@@ -79,11 +79,13 @@ main {
     text-align: center;
     padding: 0.2em;
     box-sizing: border-box;
+    touch-action: none;
   }
 
-  .button:active {
-    border: solid 2px #66b0ff;
+  .button.active {
+    background: #3495fe;
   }
+
 }
 
 .grid-stack-item[ioty-type="switch"] {

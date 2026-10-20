@@ -325,9 +325,10 @@ main {
   font-weight: bold;
   text-align: center;
   padding: 0.2em;
-  box-sizing: border-box; }
-.grid-stack-item[ioty-type="button"] .button:active {
-  border: solid 2px #66b0ff; }
+  box-sizing: border-box;
+  touch-action: none; }
+.grid-stack-item[ioty-type="button"] .button.active {
+  background: #3495fe; }
 
 .grid-stack-item[ioty-type="switch"] .switch {
   display: flex;

@@ -291,6 +291,8 @@ class IotyButton extends IotyWidget {
   buttonDown() {
     if (main.mode == main.MODE_RUN) {
       this.state = 1;
+      let button = this.element.querySelector('.button');
+      button.classList.add('active');
       main.publish(this.getSetting('topic'), this.getSetting('press'));
     }
   }
@@ -298,6 +300,8 @@ class IotyButton extends IotyWidget {
   buttonUp() {
     if (main.mode == main.MODE_RUN && this.state) {
       this.state = 0;
+      let button = this.element.querySelector('.button');
+      button.classList.remove('active');
       if (this.getSetting('pressOnly') == 'false') {
         main.publish(this.getSetting('topic'), this.getSetting('release'));
       }
